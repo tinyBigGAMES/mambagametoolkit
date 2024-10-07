@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{9408CB86-A038-4FB8-BBE4-FC1A28F9AEFA}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Mamba.Deps\Mamba.Deps.cbproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\examples\testbed\Testbed.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="Mamba_Deps">
+        <MSBuild Projects="Mamba.Deps\Mamba.Deps.cbproj"/>
+    </Target>
+    <Target Name="Mamba_Deps:Clean">
+        <MSBuild Projects="Mamba.Deps\Mamba.Deps.cbproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Mamba_Deps:Make">
+        <MSBuild Projects="Mamba.Deps\Mamba.Deps.cbproj" Targets="Make"/>
+    </Target>
+    <Target Name="Testbed">
+        <MSBuild Projects="..\examples\testbed\Testbed.dproj"/>
+    </Target>
+    <Target Name="Testbed:Clean">
+        <MSBuild Projects="..\examples\testbed\Testbed.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Testbed:Make">
+        <MSBuild Projects="..\examples\testbed\Testbed.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="Mamba_Deps;Testbed"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="Mamba_Deps:Clean;Testbed:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="Mamba_Deps:Make;Testbed:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
