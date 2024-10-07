@@ -223,10 +223,9 @@ begin
     else
     if AFilename = 'res/videos/tbg.mpg' then
       Video.PlayFromZipFile(CZipFilename, 'res/videos/sample01.mpg', 1.0, False)
-    ;{
     else
     if AFilename = 'res/videos/sample01.mpg' then
-      Video.PlayFromZipFile(CZipFilename, 'res/videos/mgt.mpg', 1.0, False)}
+      Video.PlayFromZipFile(CZipFilename, 'res/videos/mgt.mpg', 1.0, False);
   end;
 end;
 
@@ -339,10 +338,10 @@ begin
 
   // uncomment example to run
 
-  Test_ZipFile01();
+  //Test_ZipFile01();
   //Test_Interface01();
   //Test_Texture01();
-  //Test_Video01();
+  Test_Video01();
   //Test_Audo01();
   Console.Pause();
 end;
