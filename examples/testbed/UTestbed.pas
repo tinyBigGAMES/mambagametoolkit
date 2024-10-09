@@ -1,11 +1,11 @@
-{==============================================================================
+﻿{==============================================================================
                      __  __               _
                     |  \/  | __ _  _ __  | |__  __ _
                     | |\/| |/ _` || '  \ | '_ \/ _` |
                     |_|  |_|\__,_||_|_|_||_.__/\__,_|
-                              Game Toolkit�
+                              Game Toolkit™
 
-                 Copyright � 2024-present tinyBigGAMES� LLC
+                 Copyright © 2024-present tinyBigGAMES™ LLC
                           All Rights Reserved.
 
                     Website: https://tinybiggames.com
@@ -332,6 +332,64 @@ begin
   IRelease(LWindow);
 end;
 
+//=== FONT ==================================================================
+procedure Test_Font01();
+var
+  LWindow: IWindow;
+  LFont: array[0..1] of  IFont;
+  LHudPos: TPoint;
+begin
+  IGet(IWindow, LWindow);
+
+  LWindow.Open('MGT: Font #01');
+
+  IGet(IFont, LFont[0]);
+  LFont[0].Load(LWindow, 10);
+
+  IGet(IFont, LFont[1]);
+  LFont[1].LoadFromZipFile(LWindow, CZipFilename, 'res\fonts\unifont.ttf', 12, 'こんにちは안녕하세요你好नमस्कारሰላም');
+
+
+  while not LWindow.ShouldClose() do
+  begin
+    LWindow.StartFrame();
+
+      if LWindow.GetKey(KEY_ESCAPE, isWasPressed) then
+        LWindow.SetShouldClose(True);
+
+      if LWindow.GetKey(KEY_F11, isWasPressed) then
+        LWindow.ToggleFullscreen();
+
+      LWindow.StartDrawing();
+
+        LWindow.Clear(DARKSLATEBROWN);
+
+        LHudPos := Math.Point(3, 100);
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Hindi): नमस्कार', []);
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Chinese): 你好', []);
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Korean): 안녕하세요', []);
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Japanese): こんにちは', []);
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Amaric): ሰላም', []);
+
+        LHudPos := Math.Point(3, 3);
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit', []);
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen', []);
+
+      LWindow.EndDrawing();
+
+    LWindow.EndFrame();
+  end;
+
+  IRelease(LFont[1]);
+  IRelease(LFont[0]);
+
+  LWindow.Close();
+
+  IRelease(LWindow);
+end;
+
+
 procedure RunTests();
 begin
   Console.PrintLn('%sWelcome%s to %sMamba Game Toolkit v%s', [CSIBold+CSIBlink, CSIResetFormat, CSIFGGreen, MGT_VERSION_FULL]);
@@ -341,8 +399,9 @@ begin
   //Test_ZipFile01();
   //Test_Interface01();
   //Test_Texture01();
-  Test_Video01();
+  //Test_Video01();
   //Test_Audo01();
+  Test_Font01();
   Console.Pause();
 end;
 
