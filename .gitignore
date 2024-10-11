@@ -81,3 +81,5 @@ __recovery/
 modules/
 bin/data.zip
 *.dsv
+!src/Mamba.Deps.o
+src/Mamba.Deps/bin/Mamba.Deps.res
