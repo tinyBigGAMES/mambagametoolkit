@@ -54,6 +54,8 @@ end;
 
 //=== WINDOW ================================================================
 procedure Test_Window01();
+const
+  CFalseTrue: array[False..True] of string = ('no focus', 'has focus');
 var
   LWindow: IWindow;
   LTexture: ITexture;
@@ -103,6 +105,10 @@ begin
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit', []);
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen', []);
+
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Mouse Wheel - x:%3.2f, y:%3.2f', [LWindow.GetMouseWheel().x, LWindow.GetMouseWheel().y]);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Mouse Pos   - x:%3.2f, y:%3.2f', [LWindow.GetMousePos().x, LWindow.GetMousePos().y]);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Window      - %s', [CFalseTrue[LWindow.HasFocus()]]);
 
       LWindow.EndDrawing();
 
@@ -401,7 +407,8 @@ begin
   //Test_Texture01();
   //Test_Video01();
   //Test_Audo01();
-  Test_Font01();
+  //Test_Font01();
+  Test_Window01();
   Console.Pause();
 end;
 

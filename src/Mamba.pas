@@ -827,6 +827,8 @@ type
     procedure ToggleFullscreen();
     function  IsFullscreen(): Boolean;
 
+    function  HasFocus(): Boolean;
+
     function  GetVirtualSize(): TSize;
     function  GetSize(): TSize;
     function  GetScale(): TSize;
@@ -865,6 +867,8 @@ type
     procedure GetMousePos(const X, Y: System.PSingle); overload;
     function  GetMousePos(): TPoint; overload;
     procedure SetMousePos(const X, Y: Single);
+    function  GetMouseWheel(): TVector;
+
     function  GamepadPresent(const AGamepad: Byte): Boolean;
     function  GetGamepadName(const AGamepad: Byte): string;
     function  GetGamepadButton(const AGamepad, AButton: Byte; const AState: TInputState): Boolean;
@@ -3955,6 +3959,7 @@ type
     FMouseButtonState: array [0..0, MOUSE_BUTTON_1..MOUSE_BUTTON_MIDDLE] of Boolean;
     FGamepadButtonState: array[0..0, GAMEPAD_BUTTON_A..GAMEPAD_BUTTON_LAST] of Boolean;
     FTiming: TTiming;
+    FMouseWheel: TVector;
     procedure SetDefaultIcon();
     procedure StartTiming();
     procedure StopTiming();
@@ -3971,6 +3976,8 @@ type
     procedure Resize(const AWidth, AHeight: Cardinal);
     procedure ToggleFullscreen();
     function  IsFullscreen(): Boolean;
+
+    function  HasFocus(): Boolean;
 
     function  GetVirtualSize(): TSize;
     function  GetSize(): TSize;
@@ -4010,6 +4017,8 @@ type
     procedure GetMousePos(const X, Y: System.PSingle); overload;
     function  GetMousePos(): TPoint; overload;
     procedure SetMousePos(const X, Y: Single);
+    function  GetMouseWheel(): TVector;
+
     function  GamepadPresent(const AGamepad: Byte): Boolean;
     function  GetGamepadName(const AGamepad: Byte): string;
     function  GetGamepadButton(const AGamepad, AButton: Byte; const AState: TInputState): Boolean;
@@ -4077,6 +4086,17 @@ begin
   LWindow.FViewport.pos.y := LYOffset;
   LWindow.FViewport.size.w := LNewWidth;
   LWindow.FViewport.size.h := LNewHeight;
+end;
+
+procedure TWindow_ScrollCallback(AWindow: PGLFWwindow; AOffsetX, AOffsetY: Double); cdecl;
+var
+  LWindow: TWindow;
+begin
+  LWindow := glfwGetWindowUserPointer(AWindow);
+  if not Assigned(LWindow) then Exit;
+
+  // Save the scroll offsets
+  LWindow.FMouseWheel := Math.Vector(AOffsetX, AOffsetY);
 end;
 
 procedure TWindow.SetDefaultIcon();
@@ -4161,6 +4181,9 @@ begin
 
   // Set the resize callback
   glfwSetFramebufferSizeCallback(LWindow, Window_ResizeCallback);
+
+  // Set the mouse scroll callback
+  glfwSetScrollCallback(LWindow, TWindow_ScrollCallback);
 
   // Enable the scissor test
   glEnable(GL_SCISSOR_TEST);
@@ -4298,6 +4321,13 @@ begin
   Result := FVirtualSize;
 end;
 
+function  TWindow.HasFocus(): Boolean;
+begin
+  Result := False;
+  if not Assigned(FHandle) then Exit;
+  Result := Boolean(glfwGetWindowAttrib(FHandle, GLFW_FOCUSED) = GLFW_TRUE);
+end;
+
 function  TWindow.GetSize(): TSize;
 var
   LWindowWidth, LWindowHeight: Double;
@@ -4395,6 +4425,9 @@ end;
 procedure TWindow.EndFrame();
 begin
   if not Assigned(FHandle) then Exit;
+
+  // Reset mouse wheel deltas
+  FMouseWheel := Math.Vector(0,0);
 
   StopTiming();
 end;
@@ -4757,6 +4790,12 @@ begin
   glfwSetCursorPos(FHandle, LPos.X, LPos.y);
 end;
 
+function  TWindow.GetMouseWheel(): TVector;
+begin
+  Result := Math.Vector(0,0);
+  if not Assigned(FHandle) then Exit;
+  Result := FMouseWheel;
+end;
 
 function  TWindow.GamepadPresent(const AGamepad: Byte): Boolean;
 begin
