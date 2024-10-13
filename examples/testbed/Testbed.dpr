@@ -23,7 +23,7 @@ program Testbed;
 uses
   System.SysUtils,
   UTestbed in 'UTestbed.pas',
-  Mamba in '..\..\src\Mamba.pas';
+  Mamba.Core in '..\..\src\Mamba.Core.pas';
 
 begin
   try

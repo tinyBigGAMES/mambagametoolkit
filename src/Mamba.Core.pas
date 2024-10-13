@@ -14,7 +14,7 @@
                  See LICENSE file for license information
 ==============================================================================}
 
-unit Mamba;
+unit Mamba.Core;
 
 {$I Mamba.Defines.inc}
 
@@ -79,6 +79,46 @@ function IRegister(const AGUID: TGUID; const AClass: TBaseInterfaceClass): Boole
 function IGet(const AGUID: TGUID; const [ref] AInterface: IBaseInterface): Boolean;
 function IRelease(const [ref] AInterface: IBaseInterface): Boolean;
 function ICount(): NativeInt;
+{$ENDREGION}
+
+{$REGION ' UTILS '}
+//=== UTILS =================================================================
+type
+  { TAsyncProc }
+  TAsyncProc = reference to procedure;
+
+  { IUtils }
+  IUtils = interface(IBaseInterface)
+    ['{232C0B35-6A04-4DF9-926E-B5B30AC2F801}']
+    function  GetTempStaticBufferSize(): UInt64;
+    function  GetTempStaticBuffer(): Pointer;
+
+    function  AsUTF8(const AText: System.string): System.Pointer; overload;
+    function  AsUTF8(const AText: System.PWideChar): System.Pointer; overload;
+
+    function  ResourceExist(const AInstance: HINST; const AResName: WideString): Boolean;
+    function  RemoveDuplicates(const aText: string): string;
+    procedure ProcessMessages();
+
+    procedure EnterCriticalSection();
+    procedure LeaveCriticalSection();
+
+    procedure Wait(const AMilliseconds: Double);
+
+    procedure AsyncProcess();
+    procedure AsyncClear();
+    procedure AsyncRun(const AName: string; const ABackgroundTask: TAsyncProc; const AWaitForgroundTask: TAsyncProc);
+    function  AsyncIsBusy(const AName: string): Boolean;
+    procedure AsyncSetTerminate(const AName: string; const ATerminate: Boolean);
+    function  AsyncShouldTerminate(const AName: string): Boolean;
+    procedure AsyncTerminateAll();
+    procedure AsyncWaitForAllToTerminate();
+    procedure AsyncSuspend();
+    procedure AsyncResume();
+  end;
+
+var
+  Utils: IUtils = nil;
 {$ENDREGION}
 
 {$REGION ' CONSOLE '}
@@ -1064,90 +1104,12 @@ implementation
 {$REGION ' COMMON '}
 
 //=== COMMON ================================================================
-const
-  { CTempStaticBufferSize }
-  CTempStaticBufferSize = 1024*4;
-
 type
   { TCallback }
   TCallback<T> = record
     Handler: T;
     UserData: Pointer;
   end;
-
-var
-  FMarshaller: TMarshaller;
-  FTempStaticBuffer: array[0..CTempStaticBufferSize-1] of Byte;
-  CriticalSection: TCriticalSection;
-
-function GetTempStaticBufferSize(): UInt64;
-begin
-  Result := CTempStaticBufferSize;
-end;
-
-function GetTempStaticBuffer(): Pointer;
-begin
-  Result := @FTempStaticBuffer[0]
-end;
-
-function  AsUTF8(const AText: System.string): System.Pointer; overload;
-begin
-  Result := FMarshaller.AsUtf8(AText).ToPointer;
-end;
-
-function  AsUTF8(const AText: System.PWideChar): System.Pointer; overload;
-begin
-  Result := FMarshaller.AsUtf8(AText).ToPointer;
-end;
-
-function  ResourceExist(const AInstance: HINST; const AResName: WideString): Boolean;
-begin
-  Result := Boolean((FindResource(HInstance, PChar(AResName), RT_RCDATA) <> 0));
-end;
-
-function RemoveDuplicates(const aText: string): string;
-var
-  i, l: integer;
-begin
-  Result := '';
-  l := Length(aText);
-  for i := 1 to l do
-  begin
-    if (Pos(aText[i], result) = 0) then
-    begin
-      result := result + aText[i];
-    end;
-  end;
-end;
-
-procedure ProcessMessages();
-var
-  LMsg: TMsg;
-begin
-  while Integer(PeekMessage(LMsg, 0, 0, 0, PM_REMOVE)) <> 0 do
-  begin
-    TranslateMessage(LMsg);
-    DispatchMessage(LMsg);
-  end;
-end;
-
-procedure Wait(const AMilliseconds: Double);
-var
-  LFrequency, LStartCount, LCurrentCount: Int64;
-  LElapsedTime: Double;
-begin
-  // Get the high-precision frequency of the system's performance counter
-  QueryPerformanceFrequency(LFrequency);
-
-  // Get the starting value of the performance counter
-  QueryPerformanceCounter(LStartCount);
-
-  // Convert milliseconds to seconds for precision timing
-  repeat
-    QueryPerformanceCounter(LCurrentCount);
-    LElapsedTime := (LCurrentCount - LStartCount) / LFrequency * 1000.0; // Convert to milliseconds
-  until LElapsedTime >= AMilliseconds;
-end;
 
 type
   { TVirtualBuffer }
@@ -1361,7 +1323,7 @@ function TRingBuffer<T>.Write(const AData: array of T; ACount: Integer): Integer
 var
   i, WritePos: Integer;
 begin
-  CriticalSection.Enter();
+  Utils.EnterCriticalSection();
   try
     for i := 0 to ACount - 1 do
     begin
@@ -1371,7 +1333,7 @@ begin
     FWriteIndex := (FWriteIndex + ACount) mod FCapacity;
     Result := ACount;
   finally
-    CriticalSection.Leave();
+    Utils.LeaveCriticalSection();
   end;
 end;
 
@@ -1404,7 +1366,7 @@ var
   I: Integer;
 begin
 
-  CriticalSection.Enter();
+  Utils.EnterCriticalSection();
   try
     for I := Low(FBuffer) to High(FBuffer) do
     begin
@@ -1414,7 +1376,7 @@ begin
     FReadIndex := 0;
     FWriteIndex := 0;
   finally
-    CriticalSection.Leave();
+    Utils.LeaveCriticalSection();
   end;
 end;
 
@@ -1448,7 +1410,7 @@ function TVirtualRingBuffer<T>.Write(const AData: array of T; ACount: Integer): 
 var
   i, WritePos: Integer;
 begin
-  CriticalSection.Enter();
+  Utils.EnterCriticalSection();
   try
     for i := 0 to ACount - 1 do
     begin
@@ -1458,7 +1420,7 @@ begin
     FWriteIndex := (FWriteIndex + ACount) mod FCapacity;
     Result := ACount;
   finally
-    CriticalSection.Leave();
+    Utils.LeaveCriticalSection();
   end;
 end;
 
@@ -1491,7 +1453,7 @@ var
   I: Integer;
 begin
 
-  CriticalSection.Enter();
+  Utils.EnterCriticalSection();
   try
     for I := 0 to FCapacity-1 do
     begin
@@ -1501,9 +1463,263 @@ begin
     FReadIndex := 0;
     FWriteIndex := 0;
   finally
-    CriticalSection.Leave();
+    Utils.LeaveCriticalSection();
   end;
 end;
+
+type
+  { TAsyncThread }
+  TAsyncThread = class(TThread)
+  protected
+    FTask: TAsyncProc;
+    FWait: TAsyncProc;
+    FFinished: Boolean;
+  public
+    property TaskProc: TAsyncProc read FTask write FTask;
+    property WaitProc: TAsyncProc read FWait write FWait;
+    property Finished: Boolean read FFinished;
+    constructor Create(); virtual;
+    destructor Destroy(); override;
+    procedure Execute(); override;
+  end;
+
+  { TAsync }
+  TAsync = class(TBaseObject)
+  protected type
+    TBusyData = record
+      Name: string;
+      Thread: Pointer;
+      Flag: Boolean;
+      Terminate: Boolean;
+    end;
+  protected
+    FQueue: TList<TAsyncThread>;
+    FBusy: TDictionary<string, TBusyData>;
+  public
+    constructor Create(); override;
+    destructor Destroy(); override;
+    procedure Clear();
+    procedure Process();
+    procedure Exec(const AName: string; const ABackgroundTask: TAsyncProc; const AWaitForgroundTask: TAsyncProc);
+    function  Busy(const AName: string): Boolean;
+    procedure SetTerminate(const AName: string; const ATerminate: Boolean);
+    function  ShouldTerminate(const AName: string): Boolean;
+    procedure TerminateAll();
+    procedure WaitForAllToTerminate();
+    procedure Suspend();
+    procedure Resume();
+    procedure Enter();
+    procedure Leave();
+  end;
+
+constructor TAsyncThread.Create();
+begin
+  inherited Create(True);
+
+  FTask := nil;
+  FWait := nil;
+  FFinished := False;
+end;
+
+destructor TAsyncThread.Destroy();
+begin
+  inherited;
+end;
+
+procedure TAsyncThread.Execute();
+begin
+  FFinished := False;
+
+  if Assigned(FTask) then
+  begin
+    FTask();
+  end;
+
+  FFinished := True;
+end;
+
+{ TAsync }
+constructor TAsync.Create();
+begin
+  inherited;
+
+  FQueue := TList<TAsyncThread>.Create;
+  FBusy := TDictionary<string, TBusyData>.Create;
+end;
+
+destructor TAsync.Destroy();
+begin
+
+  FBusy.Free();
+  FQueue.Free();
+
+  inherited;
+end;
+
+procedure TAsync.Clear();
+begin
+  FBusy.Clear();
+  FQueue.Clear();
+end;
+
+procedure TAsync.Process();
+var
+  LAsyncThread: TAsyncThread;
+  LAsyncThread2: TAsyncThread;
+  LIndex: TBusyData;
+  LBusy: TBusyData;
+begin
+  Enter();
+
+  if TThread.CurrentThread.ThreadID = MainThreadID then
+  begin
+    for LAsyncThread in FQueue do
+    begin
+      if Assigned(LAsyncThread) then
+      begin
+        if LAsyncThread.Finished then
+        begin
+          LAsyncThread.WaitFor();
+          LAsyncThread.WaitProc();
+          FQueue.Remove(LAsyncThread);
+          for LIndex in FBusy.Values do
+          begin
+            if Lindex.Thread = LAsyncThread then
+            begin
+              LBusy := LIndex;
+              LBusy.Flag := False;
+              FBusy.AddOrSetValue(LBusy.Name, LBusy);
+              Break;
+            end;
+          end;
+          LAsyncThread2 := LAsyncThread;
+          FreeAndNil(LAsyncThread2);
+        end;
+      end;
+    end;
+    FQueue.Pack;
+  end;
+
+  Leave();
+end;
+
+procedure TAsync.Exec(const AName: string; const ABackgroundTask: TAsyncProc; const AWaitForgroundTask: TAsyncProc);
+var
+  LAsyncThread: TAsyncThread;
+  LBusy: TBusyData;
+begin
+  if not Assigned(ABackgroundTask) then Exit;
+  if not Assigned(AWaitForgroundTask) then Exit;
+  if AName.IsEmpty then Exit;
+  if Busy(AName) then Exit;
+  Enter;
+  LAsyncThread := TAsyncThread.Create;
+  LAsyncThread.TaskProc := ABackgroundTask;
+  LAsyncThread.WaitProc := AWaitForgroundTask;
+  FQueue.Add(LAsyncThread);
+  LBusy.Name := AName;
+  LBusy.Thread := LAsyncThread;
+  LBusy.Flag := True;
+  LBusy.Terminate := False;
+  FBusy.AddOrSetValue(AName, LBusy);
+  LAsyncThread.Start;
+  Leave;
+end;
+
+function  TAsync.Busy(const AName: string): Boolean;
+var
+  LBusy: TBusyData;
+begin
+  Result := False;
+  if AName.IsEmpty then Exit;
+  Enter;
+  FBusy.TryGetValue(AName, LBusy);
+  Leave;
+  Result := LBusy.Flag;
+end;
+
+procedure TAsync.SetTerminate(const AName: string; const ATerminate: Boolean);
+var
+  LBusy: TBusyData;
+begin
+  if AName.IsEmpty then Exit;
+  Enter();
+  FBusy.TryGetValue(AName, LBusy);
+  LBusy.Terminate := ATerminate;
+  FBusy.AddOrSetValue(AName, LBusy);
+  Leave();
+end;
+
+function  TAsync.ShouldTerminate(const AName: string): Boolean;
+var
+  LBusy: TBusyData;
+begin
+  Result := False;
+  if AName.IsEmpty then Exit;
+  Enter();
+  FBusy.TryGetValue(AName, LBusy);
+  Result := LBusy.Terminate;
+  Leave();
+end;
+
+procedure TAsync.TerminateAll();
+var
+  LBusy: TPair<string, TBusyData>;
+begin
+  for LBusy in FBusy do
+  begin
+    SetTerminate(LBusy.Key, True);
+  end;
+end;
+
+procedure TAsync.WaitForAllToTerminate();
+var
+  LDone: Boolean;
+begin
+  TerminateAll();
+  Resume();
+  LDone := False;
+  while not LDone do
+  begin
+    if FQueue.Count = 0 then
+      Break;
+    Process();
+    Sleep(0);
+  end;
+end;
+
+procedure TAsync.Suspend();
+var
+  LAsyncThread: TAsyncThread;
+begin
+  for LAsyncThread in FQueue do
+  begin
+    if not LAsyncThread.Suspended then
+      LAsyncThread.Suspend;
+  end;
+end;
+
+procedure TAsync.Resume();
+var
+  LAsyncThread: TAsyncThread;
+begin
+  for LAsyncThread in FQueue do
+  begin
+    if LAsyncThread.Suspended then
+      LAsyncThread.Resume;
+  end;
+end;
+
+procedure TAsync.Enter();
+begin
+  Utils.EnterCriticalSection();
+end;
+
+procedure TAsync.Leave();
+begin
+  Utils.LeaveCriticalSection();
+end;
+
 {$ENDREGION}
 
 {$REGION ' BASE '}
@@ -1628,6 +1844,188 @@ destructor TBaseObject.Destroy();
 begin
   inherited;
 end;
+{$ENDREGION}
+
+{$REGION ' UTILS '}
+//=== UTILS =================================================================
+type
+  TUtils = class(TBaseInterface, IUtils)
+  private const
+    CTempStaticBufferSize = 1024*4;
+  private
+    FMarshaller: TMarshaller;
+    FTempStaticBuffer: array[0..CTempStaticBufferSize-1] of Byte;
+    FCriticalSection: TCriticalSection;
+    FAsync: TAsync;
+  public
+    constructor Create(); override;
+    destructor Destroy(); override;
+    function  GetTempStaticBufferSize(): UInt64;
+    function  GetTempStaticBuffer(): Pointer;
+    function  AsUTF8(const AText: System.string): System.Pointer; overload;
+    function  AsUTF8(const AText: System.PWideChar): System.Pointer; overload;
+    function  ResourceExist(const AInstance: HINST; const AResName: WideString): Boolean;
+    function  RemoveDuplicates(const aText: string): string;
+    procedure ProcessMessages();
+    procedure EnterCriticalSection();
+    procedure LeaveCriticalSection();
+    procedure Wait(const AMilliseconds: Double);
+
+    procedure AsyncProcess();
+    procedure AsyncClear();
+    procedure AsyncRun(const AName: string; const ABackgroundTask: TAsyncProc; const AWaitForgroundTask: TAsyncProc);
+    function  AsyncIsBusy(const AName: string): Boolean;
+    procedure AsyncSetTerminate(const AName: string; const ATerminate: Boolean);
+    function  AsyncShouldTerminate(const AName: string): Boolean;
+    procedure AsyncTerminateAll();
+    procedure AsyncWaitForAllToTerminate();
+    procedure AsyncSuspend();
+    procedure AsyncResume();
+  end;
+
+constructor TUtils.Create();
+begin
+  inherited;
+  FCriticalSection := TCriticalSection.Create();
+  FAsync := TAsync.Create();
+end;
+
+destructor TUtils.Destroy();
+begin
+  FAsync.Free();
+  FCriticalSection.Free();
+  inherited;
+end;
+
+function TUtils.GetTempStaticBufferSize(): UInt64;
+begin
+  Result := CTempStaticBufferSize;
+end;
+
+function TUtils.GetTempStaticBuffer(): Pointer;
+begin
+  Result := @FTempStaticBuffer[0]
+end;
+
+function  TUtils.AsUTF8(const AText: System.string): System.Pointer;
+begin
+  Result := FMarshaller.AsUtf8(AText).ToPointer;
+end;
+
+function  TUtils.AsUTF8(const AText: System.PWideChar): System.Pointer;
+begin
+  Result := FMarshaller.AsUtf8(AText).ToPointer;
+end;
+
+function  TUtils.ResourceExist(const AInstance: HINST; const AResName: WideString): Boolean;
+begin
+  Result := Boolean((FindResource(HInstance, PChar(AResName), RT_RCDATA) <> 0));
+end;
+
+function TUtils.RemoveDuplicates(const aText: string): string;
+var
+  i, l: integer;
+begin
+  Result := '';
+  l := Length(aText);
+  for i := 1 to l do
+  begin
+    if (Pos(aText[i], result) = 0) then
+    begin
+      result := result + aText[i];
+    end;
+  end;
+end;
+
+procedure TUtils.ProcessMessages();
+var
+  LMsg: TMsg;
+begin
+  while Integer(PeekMessage(LMsg, 0, 0, 0, PM_REMOVE)) <> 0 do
+  begin
+    TranslateMessage(LMsg);
+    DispatchMessage(LMsg);
+  end;
+end;
+
+procedure TUtils.EnterCriticalSection();
+begin
+  FCriticalSection.Enter();
+end;
+
+procedure TUtils.LeaveCriticalSection();
+begin
+  FCriticalSection.Leave();
+end;
+
+procedure TUtils.Wait(const AMilliseconds: Double);
+var
+  LFrequency, LStartCount, LCurrentCount: Int64;
+  LElapsedTime: Double;
+begin
+  // Get the high-precision frequency of the system's performance counter
+  QueryPerformanceFrequency(LFrequency);
+
+  // Get the starting value of the performance counter
+  QueryPerformanceCounter(LStartCount);
+
+  // Convert milliseconds to seconds for precision timing
+  repeat
+    QueryPerformanceCounter(LCurrentCount);
+    LElapsedTime := (LCurrentCount - LStartCount) / LFrequency * 1000.0; // Convert to milliseconds
+  until LElapsedTime >= AMilliseconds;
+end;
+
+procedure TUtils.AsyncProcess();
+begin
+  FAsync.Process();
+end;
+
+procedure TUtils.AsyncClear();
+begin
+  FAsync.Clear();
+end;
+
+procedure TUtils.AsyncRun(const AName: string; const ABackgroundTask: TAsyncProc; const AWaitForgroundTask: TAsyncProc);
+begin
+  FAsync.Exec(AName, ABackgroundTask, AWaitForgroundTask);
+end;
+
+function  TUtils.AsyncIsBusy(const AName: string): Boolean;
+begin
+  Result := FAsync.Busy(AName);
+end;
+
+procedure TUtils.AsyncSetTerminate(const AName: string; const ATerminate: Boolean);
+begin
+  FAsync.SetTerminate(AName, ATerminate);
+end;
+
+function  TUtils.AsyncShouldTerminate(const AName: string): Boolean;
+begin
+  Result := FAsync.ShouldTerminate(AName);
+end;
+
+procedure TUtils.AsyncTerminateAll();
+begin
+  FAsync.TerminateAll();
+end;
+
+procedure TUtils.AsyncWaitForAllToTerminate();
+begin
+  FAsync.WaitForAllToTerminate();
+end;
+
+procedure TUtils.AsyncSuspend();
+begin
+  FAsync.Suspend();
+end;
+
+procedure TUtils.AsyncResume();
+begin
+  FAsync.Resume();
+end;
+
 {$ENDREGION}
 
 {$REGION ' CONSOLE '}
@@ -2232,11 +2630,11 @@ begin
 
   for LChar in LText do
   begin
-    ProcessMessages();
+    Utils.ProcessMessages();
     Print('%s%s', [AColor, LChar]);
     if not Math.RandomBool() then
       FTeletypeDelay := Math.RandomRange(AMinDelay, AMaxDelay);
-    Wait(FTeletypeDelay);
+    Utils.Wait(FTeletypeDelay);
     if IsKeyPressed(ABreakKey) then
     begin
       ClearKeyboardBuffer;
@@ -3685,10 +4083,10 @@ var
     LBytesToRead := UInt64(LOffset) - unztell64(FHandle);
     while LBytesToRead > 0 do
     begin
-      if LBytesToRead > GetTempStaticBufferSize() then
-        unzReadCurrentFile(FHandle, GetTempStaticBuffer(), GetTempStaticBufferSize())
+      if LBytesToRead > Utils.GetTempStaticBufferSize() then
+        unzReadCurrentFile(FHandle, Utils.GetTempStaticBuffer(), Utils.GetTempStaticBufferSize())
       else
-        unzReadCurrentFile(FHandle, GetTempStaticBuffer(), LBytesToRead);
+        unzReadCurrentFile(FHandle, Utils.GetTempStaticBuffer(), LBytesToRead);
 
       LBytesToRead := UInt64(LOffset) - unztell64(FHandle);
     end;
@@ -3798,8 +4196,8 @@ var
   begin
     Result := System.ZLib.crc32(0, nil, 0);
     repeat
-      LBytesRead := AStream.Read(GetTempStaticBuffer()^, GetTempStaticBufferSize());
-      Result := System.ZLib.crc32(Result, PByte(GetTempStaticBuffer()), LBytesRead);
+      LBytesRead := AStream.Read(Utils.GetTempStaticBuffer()^, Utils.GetTempStaticBufferSize());
+      Result := System.ZLib.crc32(Result, PByte(Utils.GetTempStaticBuffer()), LBytesRead);
     until LBytesRead = 0;
 
     LBuffer := nil;
@@ -3859,10 +4257,10 @@ begin
         // read through file
         repeat
           // read in a buffer length of file
-          LBytesRead := LFile.Read(GetTempStaticBuffer()^, GetTempStaticBufferSize());
+          LBytesRead := LFile.Read(Utils.GetTempStaticBuffer()^, Utils.GetTempStaticBufferSize());
 
           // write buffer out to zip file
-          zipWriteInFileInZip(LZipFile, GetTempStaticBuffer(), LBytesRead);
+          zipWriteInFileInZip(LZipFile, Utils.GetTempStaticBuffer(), LBytesRead);
 
           // calc file progress percentage
           LProgress := 100.0 * (LFile.Position / LFileSize);
@@ -4156,7 +4554,7 @@ begin
   glfwWindowHint(GLFW_SAMPLES, 4);
 
   // Create a windowed mode window and its OpenGL context
-  LWindow := glfwCreateWindow(LWidth, LHeight, AsUTF8(ATitle), nil, nil);
+  LWindow := glfwCreateWindow(LWidth, LHeight, Utils.AsUTF8(ATitle), nil, nil);
   if LWindow = nil then Exit;
 
   // set hints if child or standalone window
@@ -4401,6 +4799,10 @@ begin
   Result := True;
   if not Assigned(FHandle) then Exit;
   Result := Boolean(glfwWindowShouldClose(FHandle) = GLFW_TRUE);
+  if Result then
+  begin
+    Utils.AsyncWaitForAllToTerminate();
+  end;
 end;
 
 procedure TWindow.SetShouldClose(const AClose: Boolean);
@@ -4416,6 +4818,7 @@ begin
   StartTiming();
   Video.Update(Self);
   Audio.Update();
+  Utils.AsyncProcess();
   glfwPollEvents();
 end;
 
@@ -5684,7 +6087,7 @@ begin
   LFilename := TPath.ChangeExtension(AFilename, 'png');
 
   // Use stb_image_write to save the texture to a PNG file
-  Result := Boolean(stbi_write_png(AsUtf8(LFilename), Round(FSize.w), Round(FSize.h), 4, @LData[0], Round(FSize.w * 4)));
+  Result := Boolean(stbi_write_png(Utils.AsUtf8(LFilename), Round(FSize.w), Round(FSize.h), 4, @LData[0], Round(FSize.w * 4)));
 
   // Unbind the texture
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -5897,7 +6300,7 @@ var
 begin
   Result := False;
   if not Assigned(AWindow) then Exit;
-  if not ResourceExist(HInstance, CDefaultFontResName) then Exit;
+  if not Utils.ResourceExist(HInstance, CDefaultFontResName) then Exit;
 
   LResStream := TResourceStream.Create(HInstance, CDefaultFontResName, RT_RCDATA);
   try
@@ -5948,7 +6351,7 @@ begin
 
     if stbtt_InitFont(@LFontInfo, LBuffer.Memory, 0) = 0 then Exit;
     LGlyphChars := DEFAULT_GLYPHS + aGlyphs;
-    LGlyphChars := RemoveDuplicates(LGlyphChars);
+    LGlyphChars := Utils.RemoveDuplicates(LGlyphChars);
     NumOfGlyphs :=  LGlyphChars.Length;
     SetLength(LCodePoints, NumOfGlyphs);
 
@@ -6842,7 +7245,7 @@ begin
   if not Assigned(AIO) then Exit;
   UnloadMusic();
   FVFS.IO := AIO;
-  if ma_sound_init_from_file(@FEngine, AsUtf8(AFilename), Ord(MA_SOUND_FLAG_STREAM), nil,
+  if ma_sound_init_from_file(@FEngine, Utils.AsUtf8(AFilename), Ord(MA_SOUND_FLAG_STREAM), nil,
     nil, @FMusic.Handle) <> MA_SUCCESS then
   FVFS.IO := nil;
   ma_sound_start(@FMusic);
@@ -6944,7 +7347,7 @@ begin
   if LResult = ERROR then Exit;
 
   FVFS.IO := AIO;
-  if ma_sound_init_from_file(@FEngine, AsUtf8(AFilename), 0, nil, nil,
+  if ma_sound_init_from_file(@FEngine, Utils.AsUtf8(AFilename), 0, nil, nil,
     @FSound[LResult].Handle) <> MA_SUCCESS then Exit;
   FVFS.IO := nil;
   FSound[LResult].InUse := True;
@@ -7148,8 +7551,7 @@ begin
   if glfwInit() <> GLFW_TRUE then
     Abort();
 
-  CriticalSection := TCriticalSection.Create();
-
+  // Create interface factory
   InterfaceFactory := TInterfaceFactory.Create();
 
   // Register standard interfaces
@@ -7161,6 +7563,7 @@ begin
   IRegister(IFont, TFont);
 
   // Init global interfaces
+  Utils := TUtils.Create();
   Console := TConsole.Create();
   Math := TMath.Create();
   Color := TIColor.Create();
@@ -7170,16 +7573,17 @@ end;
 
 procedure Shutdown();
 begin
+  // Release global interfaces
   IRelease(Audio);
   IRelease(Video);
   IRelease(Color);
   IRelease(Math);
   IRelease(Console);
+  IRelease(Utils);
 
+  // Free interface factory
   InterfaceFactory.Free();
   InterfaceFactory := nil;
-
-  CriticalSection.Free();
 
   glfwTerminate();
 end;

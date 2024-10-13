@@ -127,7 +127,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="UTestbed.pas"/>
-        <DCCReference Include="..\..\src\Mamba.pas"/>
+        <DCCReference Include="..\..\src\Mamba.Core.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

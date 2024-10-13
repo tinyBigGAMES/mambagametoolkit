@@ -26,7 +26,7 @@ implementation
 
 uses
   System.SysUtils,
-  Mamba;
+  Mamba.Core;
 
 const
   CZipFilename = 'data.zip';
@@ -78,6 +78,28 @@ begin
   LPos.x := 0;
   LPos.y := 25;
 
+  Utils.AsyncRun('Task #01',
+  // background task
+  procedure
+  var
+    i: Cardinal;
+  begin
+    for i := 1 to 1000000 do
+    begin
+      writeln(i);
+      if Utils.AsyncShouldTerminate('Task #01') then
+      begin
+        writeln('Terminating task...');
+        Exit;
+      end;
+    end;
+  end,
+  // forground task
+  procedure
+  begin
+    writeln('Background task done!');
+  end);
+
   while not LWindow.ShouldClose() do
   begin
     LWindow.StartFrame();
@@ -114,6 +136,8 @@ begin
 
     LWindow.EndFrame();
   end;
+
+  Utils.AsyncWaitForAllToTerminate();
 
   IRelease(LTexture);
 
@@ -406,9 +430,9 @@ begin
   //Test_Interface01();
   //Test_Texture01();
   //Test_Video01();
-  Test_Audo01();
+  //Test_Audo01();
   //Test_Font01();
-  //Test_Window01();
+  Test_Window01();
   Console.Pause();
 end;
 
