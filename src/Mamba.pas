@@ -1048,6 +1048,8 @@ implementation
   uses
     WinApi.Windows,
     WinApi.Messages,
+    WinApi.OpenGL,
+    WinApi.OpenGLext,
     System.Types,
     System.Generics.Collections,
     System.SysUtils,
@@ -1056,8 +1058,7 @@ implementation
     System.SyncObjs,
     System.Math,
     System.ZLib,
-    Mamba.Deps,
-    Mamba.OGL;
+    Mamba.Deps;
 {$ENDREGION}
 
 {$REGION ' COMMON '}
@@ -4172,12 +4173,8 @@ begin
   // Make the window's context current
   glfwMakeContextCurrent(LWindow);
 
-  if not LoadOpenGL() then
-  begin
-    glfwMakeContextCurrent(nil);
-    glfwDestroyWindow(LWindow);
-    Exit;
-  end;
+  // init OpenGL extensions
+  InitOpenGLext();
 
   // Set the resize callback
   glfwSetFramebufferSizeCallback(LWindow, Window_ResizeCallback);

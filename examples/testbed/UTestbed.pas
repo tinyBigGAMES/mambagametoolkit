@@ -406,9 +406,9 @@ begin
   //Test_Interface01();
   //Test_Texture01();
   //Test_Video01();
-  //Test_Audo01();
+  Test_Audo01();
   //Test_Font01();
-  Test_Window01();
+  //Test_Window01();
   Console.Pause();
 end;
 
