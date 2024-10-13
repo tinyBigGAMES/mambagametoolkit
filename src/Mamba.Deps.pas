@@ -5153,7 +5153,6 @@ const
   gdi32 = 'gdi32.dll';
   shell32 = 'shell32.dll';
   ucrt = 'api-ms-win-crt-stdio-l1-1-0.dll';
-  ucrtbase = 'ucrtbase.dll';
   msvcrt = 'msvcrt.dll';
 
 //=== KERNELBASE ============================================================
@@ -5161,7 +5160,6 @@ procedure ___chkstk_ms; stdcall; external kernelbase name '__chkstk';
 
 //=== KERNEL32 ==============================================================
 procedure GetModuleHandleExW; stdcall; external kernel32;
-procedure CreateFile2; stdcall; external kernel32;
 
 //=== USER32 ================================================================
 procedure EnumDisplaySettingsExW; stdcall; external user32;
@@ -5178,12 +5176,6 @@ procedure GetRawInputData; stdcall; external user32;
 procedure DragQueryFileW; stdcall; external shell32;
 procedure DragQueryPoint; stdcall; external shell32;
 procedure DragFinish; stdcall; external shell32;
-
-//=== UCRTBASE ==============================================================
-
-
-
-procedure strdup cdecl; external ucrtbase name '_strdup';
 
 //=== UCRT ==================================================================
 procedure feof; cdecl; external ucrt;
@@ -5233,7 +5225,6 @@ procedure ferror; cdecl; external ucrt;
 procedure _ftelli64; cdecl; external ucrt;
 procedure _fseeki64; cdecl; external ucrt;
 procedure longjmp; cdecl; external ucrt;
-procedure _mktime64; cdecl; external ucrt;
 procedure clock; cdecl; external ucrt;
 procedure memchr; cdecl; external ucrt;
 procedure srand; cdecl; external ucrt;
@@ -5243,16 +5234,9 @@ procedure ungetc; cdecl; external ucrt;
 procedure ldexp; cdecl; external ucrt;
 procedure fopen; cdecl; external ucrt;
 procedure fopen64; cdecl; external ucrt name 'fopen';
-procedure setjmp; cdecl; external ucrt name '_setjmp';
 procedure __intrinsic_setjmpex; cdecl; external ucrt name '_setjmp';
-procedure strncat; cdecl; external ucrt;
-procedure tolower; cdecl; external ucrt;
-procedure _localtime64_s cdecl; external ucrt;
-procedure strrchr; cdecl; external ucrt;
-procedure strchr; cdecl; external ucrt;
 
 //=== MSVCRT ================================================================
-procedure snprintf; cdecl; external msvcrt name '_snprintf';
 procedure vsnprintf; cdecl; external msvcrt name '_vsnprintf';
 procedure sscanf; cdecl varargs; external msvcrt name 'sscanf';
 procedure sprintf; cdecl varargs; external msvcrt name 'sprintf';
