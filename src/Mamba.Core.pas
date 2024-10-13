@@ -1558,6 +1558,7 @@ end;
 
 procedure TAsync.Clear();
 begin
+  WaitForAllToTerminate();
   FBusy.Clear();
   FQueue.Clear();
 end;
