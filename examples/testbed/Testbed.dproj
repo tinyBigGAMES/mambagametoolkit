@@ -132,6 +132,7 @@
         <DCCReference Include="..\..\src\Mamba.Deps.pas"/>
         <DCCReference Include="..\..\src\Mamba.OpenGL.pas"/>
         <DCCReference Include="..\..\src\Mamba.Database.pas"/>
+        <DCCReference Include="..\..\src\Mamba.Entity.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

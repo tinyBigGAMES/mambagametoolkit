@@ -1,6 +1,8 @@
 # CHANGELOG - Mamba Game Toolkit
 
 ## Version 0.2.0
+- Added Mamba.Entity (ISprite, IEntity) + example
+- Added to Mamba.Core (TTimer)
 - Added to `Mamba.Core` (`IWindow` + example, `IConfigFile`)
 - Added `Mamaba.Database` (`ILocalDb`, `IRemoteDb` + examples)
 - Added overloads for `IConsole.Print`, `IConsole.PrintLn`

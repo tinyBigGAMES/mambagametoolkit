@@ -121,6 +121,24 @@ type
 
 var
   Utils: IUtils = nil;
+
+type
+  { TTimer }
+  PTimer = ^TTimer;
+  TTimer = record
+  private
+    FLastTime: Double;
+    FInterval: Double;
+    FSpeed: Double;
+  public
+    class operator Initialize (out ADest: TTimer);
+    procedure InitMS(const AValue: Double);
+    procedure InitFPS(const AValue: Double);
+    function Check(): Boolean;
+    procedure Reset();
+    function  Speed(): Double;
+  end;
+
 {$ENDREGION}
 
 {$REGION ' CONSOLE '}
@@ -1946,6 +1964,7 @@ type
     procedure AsyncResume();
   end;
 
+{ TUtils }
 constructor TUtils.Create();
 begin
   inherited;
@@ -2092,6 +2111,48 @@ end;
 procedure TUtils.AsyncResume();
 begin
   FAsync.Resume();
+end;
+
+{ TTimer }
+class operator TTimer.Initialize (out ADest: TTimer);
+begin
+  ADest.FLastTime := 0;
+  ADest.FInterval := 0;
+  ADest.FSpeed := 0;
+end;
+
+procedure TTimer.InitMS(const AValue: Double);
+begin
+  FInterval := AValue / 1000.0; // convert milliseconds to seconds
+  FLastTime := glfwGetTime;
+  FSpeed := AValue;
+end;
+
+procedure TTimer.InitFPS(const AValue: Double);
+begin
+  if AValue > 0 then
+    FInterval := 1.0 / AValue
+  else
+    FInterval := 0; // Prevent division by zero if FPS is not positive
+  FLastTime := glfwGetTime;
+  FSpeed := AValue;
+end;
+
+function TTimer.Check(): Boolean;
+begin
+  Result := (glfwGetTime - FLastTime) >= FInterval;
+  if Result then
+    FLastTime := glfwGetTime; // Auto-reset on check
+end;
+
+procedure TTimer.Reset();
+begin
+  FLastTime := glfwGetTime;
+end;
+
+function  TTimer.Speed(): Double;
+begin
+  Result := FSpeed;
 end;
 
 {$ENDREGION}
@@ -6298,36 +6359,25 @@ begin
   Result := Boolean(c2AABBtoAABB(boxA, boxB));
 end;
 
-function  TTexture.CollideOBB(const ATexture: ITexture): Boolean;
+function TTexture.CollideOBB(const ATexture: ITexture): Boolean;
 var
-  LA: TTexture;
-  LB: TTexture;
   obbA, obbB: TOBB;
 begin
-  Result := False;
-
-  LA := Self;
-  LB := ATexture as TTexture;
-
-  if not Assigned(LA) then Exit;
-  if LA.FHandle = 0 then Exit;
-
-  if not Assigned(LB) then Exit;
-  if LB.FHandle = 0 then Exit;
-
   // Set up OBB for this texture
-  obbA.Center := Math.Point(LA.FPos.X, LA.FPos.Y);
-  obbA.Extents := Math.Point(LA.FRegion.size.w * LA.FScale / 2, LA.FRegion.size.h * LA.FScale / 2);
-  obbA.Rotation := LA.FAngle;
+  obbA.Center := Math.Point(FPos.X, FPos.Y);
+  obbA.Extents := Math.Point(FRegion.size.w * FScale / 2, FRegion.size.h * FScale / 2);
+  obbA.Rotation := FAngle;
 
   // Set up OBB for the other texture
-  obbB.Center := Math.Point(LB.FPos.X, LB.FPos.Y);
-  obbB.Extents := Math.Point(LB.FRegion.size.w * LB.FScale / 2, LB.FRegion.size.h * LB.FScale / 2);
-  obbB.Rotation := LB.FAngle;
+  obbB.Center := Math.Point(ATexture.GetPos().X, ATexture.GetPos().Y);
+  obbB.Extents := Math.Point(ATexture.GetRegion().size.w * ATexture.GetScale() / 2, ATexture.GetRegion().size.h * ATexture.GetScale() / 2);
+  obbB.Rotation := ATexture.GetAngle();
 
   // Check for collision and return result
   Result := Math.OBBIntersect(obbA, obbB);
 end;
+
+
 {$ENDREGION}
 
 {$REGION ' FONT '}

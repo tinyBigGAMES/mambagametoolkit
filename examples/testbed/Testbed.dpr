@@ -27,7 +27,8 @@ uses
   Mamba.CRuntime in '..\..\src\Mamba.CRuntime.pas',
   Mamba.Deps in '..\..\src\Mamba.Deps.pas',
   Mamba.OpenGL in '..\..\src\Mamba.OpenGL.pas',
-  Mamba.Database in '..\..\src\Mamba.Database.pas';
+  Mamba.Database in '..\..\src\Mamba.Database.pas',
+  Mamba.Entity in '..\..\src\Mamba.Entity.pas';
 
 begin
   try

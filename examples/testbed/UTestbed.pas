@@ -27,7 +27,8 @@ implementation
 uses
   System.SysUtils,
   Mamba.Core,
-  Mamba.Database;
+  Mamba.Database,
+  Mamba.Entity;
 
 const
   CZipFilename = 'data.zip';
@@ -881,6 +882,114 @@ begin
   IRelease(LWindow);
 end;
 
+//=== ENTITY ================================================================
+procedure Test_Entity01();
+var
+  LWindow: IWindow;
+  LFont: array[0..0] of  IFont;
+  LHudPos: TPoint;
+  LPos: TPoint;            // Position for rendering text.
+  LSprite: ISprite;        // Manages sprite images and animation.
+  LBoss: IEntity;          // Represents the boss entity.
+  LPlayer: IEntity;        // Represents the player entity.
+  LCollide: Boolean;       // Boolean to check for collisions between entities.
+  LMousePos: TPoint;       // Position of the mouse cursor.
+begin
+  IGet(IWindow, LWindow);
+
+  LWindow.Open('MGT: Entiy #01');
+
+  IGet(IFont, LFont[0]);
+  LFont[0].Load(LWindow, 10);
+
+  // Create a new sprite instance.
+  IGet(ISprite, LSprite);
+
+  // Load the boss sprite page from the ZIP file and add images to it.
+  LSprite.LoadPageFromZipFile(CZipFilename, 'res/sprites/boss.png', nil); // page #0
+  LSprite.AddGroup(); // group #0
+  LSprite.AddImageFromGrid(0, 0, 0, 0, 128, 128);
+  LSprite.AddImageFromGrid(0, 0, 1, 0, 128, 128);
+  LSprite.AddImageFromGrid(0, 0, 0, 1, 128, 128);
+
+  // Load the ship sprite page from the ZIP file and add images to it.
+  LSprite.LoadPageFromZipFile(CZipFilename, 'res/sprites/ship.png', nil); // page #1
+  LSprite.AddGroup(); // group #1
+  LSprite.AddImageFromGrid(1, 1, 1, 0, 64, 64);
+  LSprite.AddImageFromGrid(1, 1, 2, 0, 64, 64);
+  LSprite.AddImageFromGrid(1, 1, 3, 0, 64, 64);
+
+  // Create the boss entity with sprite group 0 and set its position and frame speed.
+  IGet(IEntity, LBoss);
+  LBoss.Init(LSprite, 0);
+  LBoss.SetPosAbs(CDefaultWindowWidth/2, CDefaultWindowHeight/2);
+  LBoss.SetFrameSpeed(24);
+
+  // Create the player entity with sprite group 1 and set its position and frame speed.
+  IGet(IEntity, LPlayer);
+  LPlayer.Init(LSprite, 1);
+  LPlayer.SetPosAbs(0, 0);
+  LPlayer.SetFrameSpeed(24);
+
+  while not LWindow.ShouldClose() do
+  begin
+    LWindow.StartFrame();
+
+      // Get the current position of the mouse cursor.
+      LMousePos := LWindow.GetMousePos();
+
+      if LWindow.GetKey(KEY_ESCAPE, isWasPressed) then
+        LWindow.SetShouldClose(True);
+
+      if LWindow.GetKey(KEY_F11, isWasPressed) then
+        LWindow.ToggleFullscreen();
+
+      // Update the boss entity to the next animation frame.
+      LBoss.NextFrame();
+
+      // Update the player entity to the next animation frame and move towards the mouse position.
+      LPlayer.NextFrame();
+      LPlayer.ThrustToPos(40, 40, LMousePos.x, LMousePos.y, 128, 32, 1, 0.001);
+
+      // Check for collision between the player and the boss using an OBB (Oriented Bounding Box) collision method.
+      LCollide := LPlayer.Collide(LBoss, eoOBB);
+
+      LWindow.StartDrawing();
+
+        LWindow.Clear(BLACK);
+
+        // Render the boss entity.
+        LBoss.Render(LWindow);
+
+        // If a collision is detected, draw a red rectangle.
+        if LCollide then
+          LWindow.DrawFilledRect(CDefaultWindowWidth/2, (CDefaultWindowHeight/2)-64, 64, 10, RED, 0);
+
+        // Render the player entity.
+        LPlayer.Render(LWindow);
+
+        LHudPos := Math.Point(3, 3);
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('ESC', 'Quit'));
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('F11', 'Toggle fullscreen'));
+
+      LWindow.EndDrawing();
+
+    LWindow.EndFrame();
+  end;
+
+  // Free the resources used by the player and boss entities, sprite, font, window
+  IRelease(LPlayer);
+  IRelease(LBoss);
+  IRelease(LSprite);
+
+  IRelease(LFont[0]);
+
+  LWindow.Close();
+
+  IRelease(LWindow);
+end;
+
 procedure RunTests();
 begin
   Console.PrintLn('%sWelcome%s to %sMamba Game Toolkit v%s', [CSIBold+CSIBlink, CSIResetFormat, CSIFGGreen, MGT_VERSION_FULL]);
@@ -897,7 +1006,8 @@ begin
   //Test_LocalDb01();
   //Test_LocalDb02();
   //Test_RemoteDb01();
-  Test_Camera01();
+  //Test_Camera01();
+  Test_Entity01();
   Console.Pause();
 end;
 
