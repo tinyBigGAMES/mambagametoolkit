@@ -25,7 +25,7 @@ interface
 const
   { Version }
   MGT_VERSION_MAJOR = '0';
-  MGT_VERSION_MINOR = '1';
+  MGT_VERSION_MINOR = '2';
   MGT_VERSION_PATCH = '0';
   MGT_VERSION_FULL  = MGT_VERSION_MAJOR + '.' + MGT_VERSION_MINOR + '.' + MGT_VERSION_PATCH;
 
@@ -216,6 +216,9 @@ type
   { IConsole }
   IConsole = interface(IBaseInterface)
     ['{82F1D4EE-3518-48DF-90A9-29350CD7D052}']
+    procedure Print(const AMsg: string); overload;
+    procedure PrintLn(const AMsg: string); overload;
+
     procedure Print(const AMsg: string; const AArgs: array of const); overload;
     procedure PrintLn(const AMsg: string; const AArgs: array of const); overload;
 
@@ -994,9 +997,12 @@ type
     function  LoadFromFile(const AWindow: IWindow; const AFilename: string; const ASize: Cardinal; const AGlyphs: string=''): Boolean;
     function  LoadFromZipFile(const AWindow: IWindow; const AZipFilename, AFilename: string; const ASize: Cardinal; const AGlyphs: string=''; const APassword: string=CDefaultZipFilePassword): Boolean;
     procedure Unload();
+    procedure DrawText(const AWindow: IWindow; const X, Y: Single; const AColor: TColor; AHAlign: THAlign; const AText: string); overload;
+    procedure DrawText(const AWindow: IWindow; const X: Single; var Y: Single; const aLineSpace: Single; const aColor: TColor; AHAlign: THAlign; const AText: string); overload;
     procedure DrawText(const AWindow: IWindow; const X, Y: Single; const AColor: TColor; AHAlign: THAlign; const AText: string; const AArgs: array of const); overload;
     procedure DrawText(const AWindow: IWindow; const X: Single; var Y: Single; const aLineSpace: Single; const aColor: TColor; AHAlign: THAlign; const AText: string; const AArgs: array of const); overload;
-    function  TextLength(const AText: string; const AArgs: array of const): Single;
+    function  TextLength(const AText: string): Single; overload;
+    function  TextLength(const AText: string; const AArgs: array of const): Single; overload;
     function  TextHeight(): Single;
     function  SaveTexture(const AFilename: string): Boolean;
   end;
@@ -1088,8 +1094,6 @@ implementation
   uses
     WinApi.Windows,
     WinApi.Messages,
-    WinApi.OpenGL,
-    WinApi.OpenGLext,
     System.Types,
     System.Generics.Collections,
     System.SysUtils,
@@ -1098,7 +1102,8 @@ implementation
     System.SyncObjs,
     System.Math,
     System.ZLib,
-    Mamba.Deps;
+    Mamba.Deps,
+    Mamba.OpenGL;
 {$ENDREGION}
 
 {$REGION ' COMMON '}
@@ -1581,7 +1586,8 @@ begin
         if LAsyncThread.Finished then
         begin
           LAsyncThread.WaitFor();
-          LAsyncThread.WaitProc();
+          if Assigned(LAsyncThread.WaitProc) then
+            LAsyncThread.WaitProc();
           FQueue.Remove(LAsyncThread);
           for LIndex in FBusy.Values do
           begin
@@ -1610,7 +1616,6 @@ var
   LBusy: TBusyData;
 begin
   if not Assigned(ABackgroundTask) then Exit;
-  if not Assigned(AWaitForgroundTask) then Exit;
   if AName.IsEmpty then Exit;
   if Busy(AName) then Exit;
   Enter;
@@ -2045,6 +2050,9 @@ type
     constructor Create(); override;
     destructor Destroy(); override;
 
+    procedure Print(const AMsg: string); overload;
+    procedure PrintLn(const AMsg: string); overload;
+
     procedure Print(const AMsg: string; const AArgs: array of const); overload;
     procedure PrintLn(const AMsg: string; const AArgs: array of const); overload;
 
@@ -2159,6 +2167,18 @@ begin
   SetConsoleOutputCP(FOutputCodePage);
 
   inherited;
+end;
+
+procedure TConsole.Print(const AMsg: string);
+begin
+  if not HasOutput() then Exit;
+  Write(AMsg+CSIResetFormat);
+end;
+
+procedure TConsole.PrintLn(const AMsg: string);
+begin
+  if not HasOutput() then Exit;
+  WriteLn(AMsg+CSIResetFormat);
 end;
 
 procedure TConsole.Print(const AMsg: string; const AArgs: array of const);
@@ -4573,7 +4593,12 @@ begin
   glfwMakeContextCurrent(LWindow);
 
   // init OpenGL extensions
-  InitOpenGLext();
+  if not LoadOpenGL() then
+  begin
+    glfwMakeContextCurrent(nil);
+    glfwDestroyWindow(LWindow);
+    Exit;
+  end;
 
   // Set the resize callback
   glfwSetFramebufferSizeCallback(LWindow, Window_ResizeCallback);
@@ -6270,9 +6295,12 @@ type
     function  LoadFromFile(const AWindow: IWindow; const AFilename: string; const ASize: Cardinal; const AGlyphs: string=''): Boolean;
     function  LoadFromZipFile(const AWindow: IWindow; const AZipFilename, AFilename: string; const ASize: Cardinal; const AGlyphs: string=''; const APassword: string=CDefaultZipFilePassword): Boolean;
     procedure Unload();
+    procedure DrawText(const AWindow: IWindow; const X, Y: Single; const AColor: TColor; AHAlign: THAlign; const AText: string); overload;
+    procedure DrawText(const AWindow: IWindow; const X: Single; var Y: Single; const aLineSpace: Single; const aColor: TColor; AHAlign: THAlign; const AText: string); overload;
     procedure DrawText(const AWindow: IWindow; const X, Y: Single; const AColor: TColor; AHAlign: THAlign; const AText: string; const AArgs: array of const); overload;
     procedure DrawText(const AWindow: IWindow; const X: Single; var Y: Single; const aLineSpace: Single; const aColor: TColor; AHAlign: THAlign; const AText: string; const AArgs: array of const); overload;
-    function  TextLength(const AText: string; const AArgs: array of const): Single;
+    function  TextLength(const AText: string): Single; overload;
+    function  TextLength(const AText: string; const AArgs: array of const): Single; overload;
     function  TextHeight(): Single;
     function  SaveTexture(const AFilename: string): Boolean;
   end;
@@ -6484,7 +6512,7 @@ begin
   end;
 end;
 
-procedure TFont.DrawText(const AWindow: IWindow; const X, Y: Single; const AColor: TColor; AHAlign: THAlign; const AText: string; const AArgs: array of const);
+procedure TFont.DrawText(const AWindow: IWindow; const X, Y: Single; const AColor: TColor; AHAlign: THAlign; const AText: string);
 var
   LText: string;
   LChar: Integer;
@@ -6494,7 +6522,7 @@ var
   LViewport: TRect;
   LWidth: Single;
 begin
-  LText := Format(AText, AArgs);
+  LText := AText;
   LLen := LText.Length;
 
   LX := X;
@@ -6536,13 +6564,23 @@ begin
   end;
 end;
 
-procedure TFont.DrawText(const AWindow: IWindow; const X: Single; var Y: Single; const aLineSpace: Single; const aColor: TColor; AHAlign: THAlign; const AText: string; const AArgs: array of const);
+procedure TFont.DrawText(const AWindow: IWindow; const X: Single; var Y: Single; const aLineSpace: Single; const aColor: TColor; AHAlign: THAlign; const AText: string);
 begin
-  DrawText(AWindow, X, Y, aColor, aHAlign, AText, AArgs);
+  DrawText(AWindow, X, Y, aColor, aHAlign, AText);
   Y := Y + FBaseLine + ALineSpace;
 end;
 
-function  TFont.TextLength(const AText: string; const AArgs: array of const): Single;
+procedure TFont.DrawText(const AWindow: IWindow; const X, Y: Single; const AColor: TColor; AHAlign: THAlign; const AText: string; const AArgs: array of const);
+begin
+  DrawText(AWindow, X, Y, AColor, AHAlign, Format(AText, AArgs));
+end;
+
+procedure TFont.DrawText(const AWindow: IWindow; const X: Single; var Y: Single; const aLineSpace: Single; const aColor: TColor; AHAlign: THAlign; const AText: string; const AArgs: array of const);
+begin
+  DrawText(AWindow, X, Y, ALineSpace, AColor, AHAlign, Format(AText, AArgs));
+end;
+
+function  TFont.TextLength(const AText: string): Single;
 var
   LText: string;
   LChar: Integer;
@@ -6568,6 +6606,11 @@ begin
   end;
 
   Result := LWidth;
+end;
+
+function  TFont.TextLength(const AText: string; const AArgs: array of const): Single;
+begin
+  Result := TextLength(Format(AText, AArgs));
 end;
 
 function  TFont.TextHeight(): Single;

@@ -128,6 +128,10 @@
         </DelphiCompile>
         <DCCReference Include="UTestbed.pas"/>
         <DCCReference Include="..\..\src\Mamba.Core.pas"/>
+        <DCCReference Include="..\..\src\Mamba.CRuntime.pas"/>
+        <DCCReference Include="..\..\src\Mamba.Deps.pas"/>
+        <DCCReference Include="..\..\src\Mamba.OpenGL.pas"/>
+        <DCCReference Include="..\..\src\Mamba.Database.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -109,6 +109,10 @@ procedure ldexp; cdecl; external ucrt;
 procedure fopen; cdecl; external ucrt;
 procedure fopen64; cdecl; external ucrt name 'fopen';
 procedure __intrinsic_setjmpex; cdecl; external ucrt name '_setjmp';
+procedure _beginthreadex; cdecl; external ucrt;
+procedure _endthreadex; cdecl; external ucrt;
+procedure strrchr; cdecl; external ucrt;
+procedure _localtime64; cdecl; external ucrt;
 
 //=== MSVCRT ================================================================
 procedure vsnprintf; cdecl; external msvcrt name '_vsnprintf';

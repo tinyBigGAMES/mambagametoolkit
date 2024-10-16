@@ -23,7 +23,11 @@ program Testbed;
 uses
   System.SysUtils,
   UTestbed in 'UTestbed.pas',
-  Mamba.Core in '..\..\src\Mamba.Core.pas';
+  Mamba.Core in '..\..\src\Mamba.Core.pas',
+  Mamba.CRuntime in '..\..\src\Mamba.CRuntime.pas',
+  Mamba.Deps in '..\..\src\Mamba.Deps.pas',
+  Mamba.OpenGL in '..\..\src\Mamba.OpenGL.pas',
+  Mamba.Database in '..\..\src\Mamba.Database.pas';
 
 begin
   try

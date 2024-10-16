@@ -26,7 +26,8 @@ implementation
 
 uses
   System.SysUtils,
-  Mamba.Core;
+  Mamba.Core,
+  Mamba.Database;
 
 const
   CZipFilename = 'data.zip';
@@ -42,6 +43,9 @@ procedure Test_ZipFile01();
 var
   LZip: IZipFileIO;
 begin
+  // Set the console title for the application window
+  Console.SetTitle('MGT: ZipFile #01');
+
   IGet(IZipFileIO, LZip);
 
   if LZip.Build(CZipFilename, 'res', nil, Test_ZipFile01_BuildProgress) then
@@ -125,8 +129,8 @@ begin
         LHudPos := Math.Point(3, 3);
 
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit', []);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen', []);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
 
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Mouse Wheel - x:%3.2f, y:%3.2f', [LWindow.GetMouseWheel().x, LWindow.GetMouseWheel().y]);
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Mouse Pos   - x:%3.2f, y:%3.2f', [LWindow.GetMousePos().x, LWindow.GetMousePos().y]);
@@ -226,8 +230,8 @@ begin
         LHudPos := Math.Point(3, 3);
 
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit', []);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen', []);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
 
       LWindow.EndDrawing();
 
@@ -293,8 +297,8 @@ begin
 
         LHudPos := Math.Point(3, 3);
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit', []);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen', []);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
 
       LWindow.EndDrawing();
 
@@ -345,8 +349,8 @@ begin
 
         LHudPos := Math.Point(3, 3);
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit', []);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen', []);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
 
       LWindow.EndDrawing();
 
@@ -395,16 +399,16 @@ begin
         LWindow.Clear(DARKSLATEBROWN);
 
         LHudPos := Math.Point(3, 100);
-        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Hindi): नमस्कार', []);
-        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Chinese): 你好', []);
-        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Korean): 안녕하세요', []);
-        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Japanese): こんにちは', []);
-        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Amaric): ሰላም', []);
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Hindi): नमस्कार');
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Chinese): 你好');
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Korean): 안녕하세요');
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Japanese): こんにちは');
+        LFont[1].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Hello (Amaric): ሰላም');
 
         LHudPos := Math.Point(3, 3);
         LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit', []);
-        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen', []);
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
 
       LWindow.EndDrawing();
 
@@ -419,6 +423,318 @@ begin
   IRelease(LWindow);
 end;
 
+//=== DATABASE ==============================================================
+procedure Test_LocalDb01();
+const
+  CDropTableSQL = 'DROP TABLE IF EXISTS articles';
+
+  CCreateTableSQL = 'CREATE TABLE IF NOT EXISTS articles (' +
+                    'headline TEXT' +
+                    ');';
+
+  CInsertArticlesSQL = 'INSERT INTO articles VALUES ' +
+    '(''Shohei Ohtani''''s ex-interpreter pleads guilty to charges related to gambling and theft''), ' +
+    '(''The jury has been selected in Hunter Biden''''s gun trial''), ' +
+    '(''Larry Allen, a Super Bowl champion and famed Dallas Cowboy, has died at age 52''), ' +
+    '(''After saying Charlotte, a lone stingray, was pregnant, aquarium now says she''''s sick''), ' +
+    '(''An Epoch Times executive is facing money laundering charge'');';
+
+  CListArticles = 'SELECT * FROM articles';
+var
+  LDb: ILocalDb;
+  I: Integer;
+begin
+  Console.SetTitle('MGT: LocalDb #01');
+
+  IGet(ILocalDb, LDb);
+  try
+    if LDb.Open('articles.db') then
+    begin
+      Console.PrintLn();
+
+      // drop existing table
+      if LDb.ExecuteSQL(CDropTableSQL) then
+        Console.PrintLn('Removing "articals" table if exists...')
+      else
+        Console.PrintLn(LDb.GetLastError());
+
+      // create articles table
+      if LDb.ExecuteSQL(CCreateTableSQL) then
+        Console.Print('Created "articals" table..')
+      else
+        Console.PrintLn(LDb.GetLastError());
+
+      // insert articles into table
+      if LDb.ExecuteSQL(CInsertArticlesSQL) then
+        Console.PrintLn('Added articles into "articals" table..')
+      else
+        Console.PrintLn(LDb.GetLastError());
+
+      // display articles table as JSON
+      if LDb.ExecuteSQL(CListArticles) then
+      begin
+        Console.PrintLn('Display "articals" table..', []);
+        Console.PrintLn(LDb.GetResponseText());
+      end
+      else
+        Console.PrintLn(LDb.GetLastError());
+
+      Console.PrintLn();
+      for I := 0 to LDb.RecordCount()-1 do
+      begin
+        Console.PrintLn('headline: %s', [LDb.GetField(I, 'headline')]);
+      end;
+
+      LDb.Close();
+    end;
+  finally
+    IRelease(LDb);
+  end;
+end;
+
+procedure Test_LocalDb02();
+const
+  CCreateScoreTableSQL: PWideChar = 'CREATE TABLE IF NOT EXISTS &gameid (' +
+    'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+    'name TEXT NOT NULL, ' +
+    'level INTEGER, ' +
+    'score INTEGER, ' +
+    'skill TEXT, ' +
+    'duration INTEGER, ' +
+    'location TEXT, ' +
+    'UNIQUE(name))';
+
+  CAddScoreSQL: PWideChar =
+    'INSERT INTO &gameid (name, level, score, skill, duration, location) ' +
+    'VALUES (:name, :level, :score, :skill, :duration, :location) ' +
+    'ON CONFLICT(name) DO UPDATE SET ' +
+    'level    = CASE WHEN :score > score THEN :level ELSE level END, ' +
+    'skill    = CASE WHEN :score > score THEN :skill ELSE skill END, ' +
+    'location = CASE WHEN :score > score THEN :location ELSE location END, ' +
+    'duration = CASE WHEN :score > score THEN :duration ELSE duration END, ' +
+    'score    = CASE WHEN :score > score THEN :score ELSE score END;';
+
+  CListScoresSQL: PWideChar =
+    'SELECT * FROM &gameid WHERE level = :level AND skill = :skill ORDER by score DESC';
+var
+  LDb: ILocalDb;
+
+  function AddScore(const ADb: ILocalDb; const AName, AScore, ALocation: string): Boolean;
+  begin
+    // set addscore SQL
+    ADb.SetSQLText(CAddScoreSQL);
+    ADb.SetMacro('gameid', 'my_game');
+    ADb.SetParam('name', AName);
+    ADb.SetParam('level', '1');
+    ADb.SetParam('score', AScore);
+    ADb.SetParam('skill', '1');
+    ADb.SetParam('duration', '0');
+    ADb.SetParam('location', ALocation);
+
+    // add score
+    Result := ADb.Execute();
+
+    // show any errors
+    if not Result then
+    begin
+      Console.PrintLn('%s%s', [CSIFGRed, ADb.GetLastError()]);
+    end;
+  end;
+
+  procedure ListScores(const ADb: ILocalDb);
+  var
+    I: Integer;
+  begin
+    // set list scores SQL
+    ADb.SetSQLText(CListScoresSQL);
+
+    // get score list
+    if not  ADb.Execute() then
+      begin
+        Console.PrintLn('%s%s', [CSIFGRed, ADb.GetLastError()]);
+      end
+    else
+      begin
+        Console.PrintLn();
+
+        // loop over returned scores
+        for I := 0 to ADb.RecordCount()-1 do
+        begin
+          // print score information
+          Console.PrintLn('%s, %s, %s', [
+            ADb.GetField(I, 'name'),
+            ADb.GetField(I, 'score'),
+            ADb.GetField(I, 'location')
+          ]);
+        end;
+
+        Console.PrintLn();
+        Console.PrintLn(ADb.GetResponseText());
+      end;
+  end;
+
+begin
+  Console.SetTitle('MGT: LocalDb #02');
+
+
+  IGet(ILocalDb, LDb);
+  try
+    // open db
+    if LDb.Open('game.db') then
+    begin
+      // set create table SQL
+      LDb.SetSQLText(CCreateScoreTableSQL);
+
+      // set gameid macro
+      LDb.SetMacro('gameid', 'my_game');
+
+      // create table if does not exist
+      if not LDb.Execute() then
+        begin
+          // display error message
+          Console.PrintLn('%s%s', [CSIFGRed, LDb.GetLastError()]);
+        end
+      else
+        begin
+          // add a few scores
+          AddScore(LDb, 'ShadowBladeX', '10', 'Alabama');
+          AddScore(LDb, 'NeonNinja', '413', 'Colorado');
+          AddScore(LDb, 'PixelPirate', '200', 'Georgia');
+          AddScore(LDb, 'QuantumKnight', '35', 'Illinois');
+          AddScore(LDb, 'TurboTornado', '987', 'Kansas');
+          AddScore(LDb, 'CyberSamurai', '670', 'Montana');
+          AddScore(LDb, 'GalacticGamer', '100', 'Ohio');
+          AddScore(LDb, 'MysticMage', '543', 'Texas');
+          AddScore(LDb, 'PhantomSniper', '250', 'Wisconsin');
+          AddScore(LDb, 'FrostFury', '30', 'Hawaii');
+
+          // display scores
+          ListScores(LDb);
+        end;
+
+      // close db
+      LDb.Close();
+    end;
+  finally
+    IRelease(LDb);
+  end;
+end;
+
+{
+  RemoteDB - PHP Interface for Remote MySQL Database (in 'src/remotedb' folder)
+
+  1. If you are using cPanel, ensure that both php_mysql and pdo_mysql
+     extensions are enabled.
+  2. Update the config.php file to set your MySQL configuration.
+  3. In the Config class within index.php, adjust the path to correctly
+     reference your config.php script.
+  4. Ensure that config.php is stored outside of the publicly accessible HTTP
+     directory for security reasons.
+
+-----------------------------------------------------------------------------
+
+  Explanation of SQL Static Macros (&text) and Dynamic Parameters (:text):
+
+  1. SQL Static Macros (&text):
+     - Purpose: Static macros are placeholders in your SQL query that are
+       replaced with fixed values or strings at the time the SQL text is
+       prepared.
+     - How it works: When you use &text in your SQL statement, it acts as a
+       macro that is replaced with a specific value or table name before the
+       query is executed. This is typically used for SQL elements that don't
+       change per execution, like table names or field names.
+     - Example: If you have 'SELECT * FROM &table;' in your SQL text, and you
+       set &table to 'users', the final SQL executed would be
+       'SELECT * FROM users;'.
+     - Analogy: Think of it like a "find and replace" that happens before the
+       query runs.
+
+  2. SQL Dynamic Parameters (:text):
+     - Purpose: Dynamic parameters are used to securely insert variable data
+       into SQL queries at runtime. They are typically used for values that
+       can change, such as user input or variable data, and are often used to
+       prevent SQL injection.
+     - How it works: When you use :text in your SQL statement, it acts as a
+       placeholder that will be dynamically replaced with an actual value at
+       runtime. The value is passed separately from the SQL query, allowing
+       for secure and flexible data handling.
+     - Example: If you have 'SELECT * FROM users WHERE id = :userId;' in your
+       SQL text, and you bind :userId to the value '42', the final SQL
+       executed would be 'SELECT * FROM users WHERE id = 42;'.
+     - Analogy: Think of it as a variable that gets its value just before the
+       SQL query is run, making it possible to execute the same query with
+       different data multiple times.
+}
+
+procedure Test_RemoteDb01();
+const
+  // Cloud database connection details.
+  CDbURL = 'https://mambagametoolkit.com/remotedb/mgt-examples';  // URL of the cloud database.
+  CDbApiKey = 'c91c8b1561fc4890a216e2a550c2e5de';                // API key for accessing the cloud database.
+  CDbName = 'testbed';                                           // Name of the database.
+  CDbTable = 'game1';                                            // Name of the table in the database.
+
+var
+  LCloudDB: IRemoteDb;                   // Instance of TCloudDb to handle database operations
+  LCount: Integer;                      // Variable to store the number of records retrieved
+  I: Integer;                           // Loop counter for iterating through records
+  LName, LLevel, LScore, LSkill,        // Variables to hold individual field values from each record
+  LDuration, LLocation: string;
+begin
+  // Set the console title for the application window
+  Console.SetTitle('MGT: RemoteDb #01');
+
+  // Create an instance of TCloudDb to manage the connection to the database
+  IGet(IRemoteDb, LCloudDb);
+  try
+    // Setup the CloudDB connection with the specified URL, API key, and database name
+    LCloudDB.Setup(CDbURL, CDbApiKey, CDbName);
+
+    // Set the SQL query text to select all records from the specified table
+    LCloudDb.SetSQLText('SELECT * FROM &table;');
+
+    // Set a macro to replace the placeholder "&table" with the actual table name
+    LCloudDb.SetMacro('table', CDbTable);
+
+    // Execute the SQL query and check if it returns any records
+    if LCloudDB.Execute() then
+    begin
+      // Retrieve the count of records returned by the query
+      LCount := LCloudDB.RecordCount();
+      Console.PrintLn(); // Print a blank line for spacing
+
+      // Print the title of the table
+      Console.PrintLn();
+      Console.PrintLn('%s%s', [CSIFGMagenta, '                          --= H I G H S C O R E S =--']);
+
+      // Print the table header with column names
+      Console.PrintLn('-------------------------------------------------------------------------------');
+      Console.PrintLn('| %-20s | %-5s | %-6s | %-10s | %-8s | %-10s |', ['Name', 'Level', 'Score', 'Skill', 'Duration', 'Location']);
+      Console.PrintLn('-------------------------------------------------------------------------------');
+
+      // Iterate through each record and print the fields in a formatted table row
+      for I := 0 to LCount-1 do
+      begin
+        // Retrieve and store each field value from the current record
+        LName := LCloudDB.GetField(I, 'name');
+        LLevel := LCloudDB.GetField(I, 'level');
+        LScore := LCloudDB.GetField(I, 'score');
+        LSkill := LCloudDB.GetField(I, 'skill');
+        LDuration := LCloudDB.GetField(I, 'duration');
+        LLocation := LCloudDB.GetField(I, 'location');
+
+        // Print the field values in a formatted table row
+        Console.PrintLn('| %-20s | %-5s | %-6s | %-10s | %-8s | %-10s |', [LName, LLevel, LScore, LSkill, LDuration, LLocation]);
+      end;
+
+      // Print the table footer to close off the table
+      Console.PrintLn('-------------------------------------------------------------------------------');
+    end;
+  finally
+    // Free the ICloudDb instance to release resources
+    IRelease(LCloudDb);
+  end;
+end;
 
 procedure RunTests();
 begin
@@ -432,7 +748,10 @@ begin
   //Test_Video01();
   //Test_Audo01();
   //Test_Font01();
-  Test_Window01();
+  //Test_Window01();
+  //Test_LocalDb01();
+  //Test_LocalDb02();
+  Test_RemoteDb01();
   Console.Pause();
 end;
 

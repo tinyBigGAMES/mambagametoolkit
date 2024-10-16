@@ -19,7 +19,7 @@
 // by C++ Builder 12.2+. dcc64 does not handle well the case of .rdata
 // section w/ nothing but unnamed symbols. Hopfully next update should fix
 // the issue.
-__attribute__((section(".rdata"), used)) int DummyNamedSymbol = 10;
+__attribute__((section(".rdata"), used)) char* MAMBA_DEPS = "{B1FF6758-692D-4A08-8E7C-571B84FFE3F9}";
 
 //=== GLFW ==================================================================
 #include "glfw\src\context.c"
@@ -39,6 +39,11 @@ __attribute__((section(".rdata"), used)) int DummyNamedSymbol = 10;
 #include "glfw\src\win32_time.c"
 #include "glfw\src\win32_window.c"
 #include "glfw\src\window.c"
+
+//=== SQLITE ================================================================
+#define SQLITE_OMIT_LOAD_EXTENSION
+#define SQLITE_ENABLE_COLUMN_METADATA
+#include "..\vendor\sqlite\sqlite3.c"
 
 //=== STB ===================================================================
 #define STB_IMAGE_IMPLEMENTATION
