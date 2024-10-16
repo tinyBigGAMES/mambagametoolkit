@@ -129,12 +129,12 @@ begin
         LHudPos := Math.Point(3, 3);
 
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('Quit', 'ESC'));
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('F11', 'Toggle fullscreen'));
 
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Mouse Wheel - x:%3.2f, y:%3.2f', [LWindow.GetMouseWheel().x, LWindow.GetMouseWheel().y]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Mouse Pos   - x:%3.2f, y:%3.2f', [LWindow.GetMousePos().x, LWindow.GetMousePos().y]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, 'Window      - %s', [CFalseTrue[LWindow.HasFocus()]]);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, Utils.HudTextItem('Mouse Wheel','x:%3.2f, y:%3.2f', 20, ' '), [LWindow.GetMouseWheel().x, LWindow.GetMouseWheel().y]);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, Utils.HudTextItem('Mouse Pos', 'x:%3.2f, y:%3.2f', 20, ' '), [LWindow.GetMousePos().x, LWindow.GetMousePos().y]);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, ORANGE, haLeft, Utils.HudTextItem('Window', '%s', 20, ' '), [CFalseTrue[LWindow.HasFocus()]]);
 
       LWindow.EndDrawing();
 
@@ -230,8 +230,8 @@ begin
         LHudPos := Math.Point(3, 3);
 
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('ESC', 'Quit'));
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('F11', 'Toggle fullscreen'));
 
       LWindow.EndDrawing();
 
@@ -297,8 +297,8 @@ begin
 
         LHudPos := Math.Point(3, 3);
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('ESC', 'Quit'));
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('F11', 'Toggle fullscreen'));
 
       LWindow.EndDrawing();
 
@@ -349,8 +349,8 @@ begin
 
         LHudPos := Math.Point(3, 3);
         LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
-        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('ESC', 'Quit'));
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('F11', 'Toggle fullscreen'));
 
       LWindow.EndDrawing();
 
@@ -407,8 +407,8 @@ begin
 
         LHudPos := Math.Point(3, 3);
         LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
-        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'ESC - Quit');
-        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, 'F11 - Toggle fullscreen');
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('ESC', 'Quit'));
+        LFont[0].DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('F11', 'Toggle fullscreen'));
 
       LWindow.EndDrawing();
 
@@ -736,6 +736,151 @@ begin
   end;
 end;
 
+//=== CAMERA ================================================================
+procedure Test_Camera01();
+type
+  // TObj represents a drawable object with position, size, and color.
+  TObj = record
+    X, Y, Size: Single;       // Position and size of the object.
+    Color: TColor;            // Color of the object.
+  end;
+var
+  LWindow: IWindow;
+  LFont: IFont;
+  LHudPos: TPoint;
+  FCam: ICamera;                // Represents the camera for viewing and transformation.
+  FObj: array[0..1000] of TObj; // Array of objects to be rendered.
+
+  // InitObjects initializes the objects with random positions, sizes, and colors.
+  procedure InitObjects();
+  var
+    I: Integer;
+  begin
+    for I := Low(FObj) to High(FObj) do
+    begin
+      FObj[I].X := Math.RandomRange(-10000, 10000);
+      FObj[I].Y := Math.RandomRange(-10000, 10000);
+      FObj[I].Size := Math.RandomRange(50, 250);
+      FObj[I].Color.r := Math.RandomRange(0, 255) / $FF;
+      FObj[I].Color.g := Math.RandomRange(0, 255) / $FF;
+      FObj[I].Color.b := Math.RandomRange(0, 255) / $FF;
+      FObj[I].Color.a := 1;
+    end;
+  end;
+
+  // DrawObjects renders each object to the window.
+  procedure DrawObjects();
+  var
+    I: Integer;
+  begin
+    for I := Low(FObj) to High(FObj) do
+    begin
+      LWindow.DrawFilledRect(FObj[I].X, FObj[I].Y, FObj[I].Size, FObj[I].Size, FObj[I].Color, 0);
+    end;
+  end;
+
+
+begin
+  IGet(IWindow, LWindow);
+
+  LWindow.Open('MGT: Camera #01');
+
+  IGet(IFont, LFont);
+  LFont.Load(LWindow, 10);
+
+  IGet(ICamera, FCam);
+  FCam.X := CDefaultWindowWidth;
+  FCam.Y := CDefaultWindowHeight;
+  FCam.Rotation := 0;
+  FCam.Scale := 0.20;
+
+  // Initialize the objects with random properties.
+  InitObjects();
+
+  while not LWindow.ShouldClose() do
+  begin
+    LWindow.StartFrame();
+
+      if LWindow.GetKey(KEY_ESCAPE, isWasPressed) then
+        LWindow.SetShouldClose(True);
+
+      if LWindow.GetKey(KEY_F11, isWasPressed) then
+        LWindow.ToggleFullscreen();
+
+      // Control camera movement and transformation based on key inputs.
+      if LWindow.GetKey(KEY_DOWN, isPressed) then
+        FCam.Move(0, 10)
+      else if LWindow.GetKey(KEY_UP, isPressed) then
+        FCam.Move(0, -10);
+
+      if LWindow.GetKey(KEY_RIGHT, isPressed) then
+        FCam.Move(10, 0)
+      else if LWindow.GetKey(KEY_LEFT, isPressed) then
+        FCam.Move(-10, 0);
+
+      if LWindow.GetKey(KEY_A, isPressed) then
+        FCam.Rotate(-2)
+      else if LWindow.GetKey(KEY_D, isPressed) then
+        FCam.Rotate(3);
+
+      if LWindow.GetKey(KEY_S, isPressed) then
+        FCam.Zoom(-0.01)
+      else if LWindow.GetKey(KEY_W, isPressed) then
+        FCam.Zoom(0.01);
+
+      // Reset camera to default position, rotation, and scale if R key is released.
+      if LWindow.GetKey(KEY_R, isWasReleased) then
+      begin
+        FCam.Reset();
+        FCam.X := CDefaultWindowWidth;
+        FCam.Y := CDefaultWindowHeight;
+        FCam.Rotation := 0;
+        FCam.Scale := 0.20;
+      end;
+
+      // Reinitialize objects if SPACE key is released.
+      if LWindow.GetKey(KEY_SPACE, isWasReleased) then
+        InitObjects();
+
+      LWindow.StartDrawing();
+
+        // Clear the window with a black background color.
+        LWindow.Clear(BLACK);
+
+        // Apply the camera transformation and draw objects.
+        FCam.Use(LWindow);
+        DrawObjects();
+        FCam.Use(nil);
+
+        LHudPos := Math.Point(3, 3);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, '%d fps', [LWindow.GetFrameRate()]);
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('Quit', 'ESC'));
+        LFont.DrawText(LWindow, LHudPos.x, LHudPos.y, 0, WHITE, haLeft, Utils.HudTextItem('F11', 'Toggle fullscreen'));
+
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, GREEN, haLeft, Utils.HudTextItem('Space', 'Spawn'), []);
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, GREEN, haLeft, Utils.HudTextItem('Left/Right', 'cam move left/right'), []);
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, GREEN, haLeft, Utils.HudTextItem('Up/Down', 'cam move up/down'), []);
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, GREEN, haLeft, Utils.HudTextItem('W/S', 'cam zoom up/down'), []);
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, GREEN, haLeft, Utils.HudTextItem('A/D', 'cam rotate up/down'), []);
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, GREEN, haLeft, Utils.HudTextItem('R', 'Reset'), []);
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, YELLOW, haLeft, Utils.HudTextItem('Pos', '%03.2f/%03.2f', 20, ' '), [FCam.X, FCam.Y]);
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, YELLOW, haLeft, Utils.HudTextItem('Zoom', '%3.2f', 20, ' '), [FCam.Scale]);
+        LFont.DrawText(LWindow, LHudPos.X, LHudPos.Y, 0, YELLOW, haLeft, Utils.HudTextItem('Angle', '%3.2f', 20, ' '), [FCam.Rotation]);
+
+      LWindow.EndDrawing();
+
+    LWindow.EndFrame();
+  end;
+
+  IRelease(FCam);
+
+  IRelease(LFont);
+
+  LWindow.Close();
+
+  IRelease(LWindow);
+end;
+
 procedure RunTests();
 begin
   Console.PrintLn('%sWelcome%s to %sMamba Game Toolkit v%s', [CSIBold+CSIBlink, CSIResetFormat, CSIFGGreen, MGT_VERSION_FULL]);
@@ -751,7 +896,8 @@ begin
   //Test_Window01();
   //Test_LocalDb01();
   //Test_LocalDb02();
-  Test_RemoteDb01();
+  //Test_RemoteDb01();
+  Test_Camera01();
   Console.Pause();
 end;
 

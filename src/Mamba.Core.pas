@@ -105,6 +105,8 @@ type
 
     procedure Wait(const AMilliseconds: Double);
 
+    function  HudTextItem(const AKey: string; const AValue: string; const APaddingWidth: Cardinal=20; const ASeperator: string='-'): string;
+
     procedure AsyncProcess();
     procedure AsyncClear();
     procedure AsyncRun(const AName: string; const ABackgroundTask: TAsyncProc; const AWaitForgroundTask: TAsyncProc);
@@ -1088,6 +1090,59 @@ var
   Audio: IAudio = nil;
 {$ENDREGION}
 
+{$REGION ' CAMERA '}
+//=== CAMERA ================================================================
+type
+  { ICamera }
+  ICamera = interface(IBaseInterface)
+    ['{4D94C426-967B-4594-A721-7B6E9FBCCB23}']
+    function  GetX(): Single;
+    procedure SetX(const AValue: Single);
+    function  GetY(): Single;
+    procedure SetY(const AValue: Single);
+    function  GetRotation(): Single;
+    procedure SetRotation(const AValue: Single);
+    function  GetScale(): Single;
+    procedure SetScale(const AValue: Single);
+    procedure Move(const X, Y: Single);
+    procedure Zoom(const AScale: Single);
+    procedure Rotate(const ARotation: Single);
+    procedure Use(const AWindow: IWindow);
+    procedure Reset();
+    property X: Single read GetX write SetX;
+    property Y: Single read GetY write SetY;
+    property Rotation: Single read GetRotation write SetRotation;
+    property Scale: Single read GetScale write SetScale;
+  end;
+{$ENDREGION}
+
+{$REGION ' CONFIGFILE '}
+//=== CONFIGFILE ============================================================
+type
+  { IConfigFile }
+  IConfigFile = interface(IBaseInterface)
+    ['{813CC144-2BC0-464D-A545-780047B4B16F}']
+    function  Open(const AFilename: string=''): Boolean;
+    procedure Close();
+    function  Opened(): Boolean;
+    procedure Update();
+    function  RemoveSection(const AName: string): Boolean;
+    procedure SetValue(const ASection, AKey, AValue: string);  overload;
+    procedure SetValue(const ASection, AKey: string; AValue: Integer); overload;
+    procedure SetValue(const ASection, AKey: string; AValue: Boolean); overload;
+    procedure SetValue(const ASection, AKey: string; AValue: Pointer; AValueSize: Cardinal); overload;
+    function  GetValue(const ASection, AKey, ADefaultValue: string): string; overload;
+    function  GetValue(const ASection, AKey: string; ADefaultValue: Integer): Integer; overload;
+    function  GetValue(const ASection, AKey: string; ADefaultValue: Boolean): Boolean; overload;
+    procedure GetValue(const ASection, AKey: string; AValue: Pointer; AValueSize: Cardinal); overload;
+    function  RemoveKey(const ASection, AKey: string): Boolean;
+    function  GetSectionValues(const ASection: string): Integer;
+    function  GetSectionValue(const AIndex: Integer; const ADefaultValue: string): string; overload;
+    function  GetSectionValue(const AIndex, ADefaultValue: Integer): Integer; overload;
+    function  GetSectionValue(const AIndex: Integer; const ADefaultValue: Boolean): Boolean; overload;
+  end;
+{$ENDREGION}
+
 implementation
 
 {$REGION ' USES '}
@@ -1102,6 +1157,7 @@ implementation
     System.SyncObjs,
     System.Math,
     System.ZLib,
+    System.IniFiles,
     Mamba.Deps,
     Mamba.OpenGL;
 {$ENDREGION}
@@ -1876,6 +1932,7 @@ type
     procedure EnterCriticalSection();
     procedure LeaveCriticalSection();
     procedure Wait(const AMilliseconds: Double);
+    function  HudTextItem(const AKey: string; const AValue: string; const APaddingWidth: Cardinal=20; const ASeperator: string='-'): string;
 
     procedure AsyncProcess();
     procedure AsyncClear();
@@ -1980,6 +2037,11 @@ begin
     QueryPerformanceCounter(LCurrentCount);
     LElapsedTime := (LCurrentCount - LStartCount) / LFrequency * 1000.0; // Convert to milliseconds
   until LElapsedTime >= AMilliseconds;
+end;
+
+function  TUtils.HudTextItem(const AKey: string; const AValue: string; const APaddingWidth: Cardinal; const ASeperator: string): string;
+begin
+  Result := Format('%s %s %s', [aKey.PadRight(APaddingWidth), aSeperator, aValue]);
 end;
 
 procedure TUtils.AsyncProcess();
@@ -7586,6 +7648,355 @@ end;
 
 {$ENDREGION}
 
+{$REGION ' CAMERA '}
+//=== CAMERA ================================================================
+type
+  TCamera = class(TBaseInterface, ICamera)
+  private
+    FX, FY: Single;
+    FRotation: Single;
+    FScale: Single;
+    FWindow: IWindow;
+  public
+    constructor Create(); override;
+    destructor Destroy(); override;
+    function  GetX(): Single;
+    procedure SetX(const AValue: Single);
+    function  GetY(): Single;
+    procedure SetY(const AValue: Single);
+    function  GetRotation(): Single;
+    procedure SetRotation(const AValue: Single);
+    function  GetScale(): Single;
+    procedure SetScale(const AValue: Single);
+    procedure Move(const X, Y: Single);
+    procedure Zoom(const AScale: Single);
+    procedure Rotate(const ARotation: Single);
+    procedure Use(const AWindow: IWindow);
+    procedure Reset();
+  end;
+
+{ TCamera }
+constructor TCamera.Create();
+begin
+  inherited;
+  FScale := 1;
+end;
+
+destructor TCamera.Destroy();
+begin
+  Reset();
+  inherited;
+end;
+
+function  TCamera.GetX(): Single;
+begin
+  Result := FX;
+end;
+
+procedure TCamera.SetX(const AValue: Single);
+begin
+  FX := AValue;
+end;
+
+function  TCamera.GetY(): Single;
+begin
+  Result := FY;
+end;
+
+procedure TCamera.SetY(const AValue: Single);
+begin
+  FY := AValue;
+end;
+
+function  TCamera.GetRotation(): Single;
+begin
+  Result := FRotation;
+end;
+
+procedure TCamera.SetRotation(const AValue: Single);
+begin
+  FRotation := EnsureRange(AValue, 0, 360);
+end;
+
+function  TCamera.GetScale(): Single;
+begin
+  Result := FScale;
+end;
+
+procedure TCamera.SetScale(const AValue: Single);
+begin
+  FScale := AValue;
+end;
+
+procedure TCamera.Move(const X, Y: Single);
+begin
+  FX := FX + (X / FScale);
+  FY := FY + (Y / FScale);
+end;
+
+procedure TCamera.Zoom(const AScale: Single);
+begin
+  FScale := FScale + (AScale * FScale);
+end;
+
+procedure TCamera.Rotate(const ARotation: Single);
+begin
+  FRotation := FRotation + ARotation;
+end;
+
+procedure TCamera.Use(const AWindow: IWindow);
+begin
+  if not Assigned(AWindow) then
+  begin
+    glPopMatrix();
+    FWindow := nil;
+    Exit;
+  end;
+
+  glPushMatrix();
+  glTranslatef((AWindow.GetVirtualSize().w/2), (AWindow.GetVirtualSize().h/2), 0);
+  glRotatef(FRotation, 0, 0, 1);
+  glScalef(FScale, FScale, 1);
+  glTranslatef(-FX, -FY, 0);
+end;
+
+procedure TCamera.Reset();
+begin
+  if Assigned(FWindow) then
+  begin
+    glPopMatrix();
+  end;
+  FX := 0;
+  FY := 0;
+  FRotation := 0;
+  FScale := 1;
+end;
+
+
+{$ENDREGION}
+
+{$REGION ' CONFIGFILE '}
+//=== CONFIGFILE ============================================================
+type
+{ TConfigFile }
+  TConfigFile = class(TBaseInterface, IConfigFile)
+  private
+    FHandle: TIniFile;
+    FFilename: string;
+    FSection: TStringList;
+  public
+    constructor Create(); override;
+    destructor Destroy(); override;
+    function  Open(const AFilename: string=''): Boolean;
+    procedure Close();
+    function  Opened(): Boolean;
+    procedure Update();
+    function  RemoveSection(const AName: string): Boolean;
+    procedure SetValue(const ASection, AKey, AValue: string);  overload;
+    procedure SetValue(const ASection, AKey: string; AValue: Integer); overload;
+    procedure SetValue(const ASection, AKey: string; AValue: Boolean); overload;
+    procedure SetValue(const ASection, AKey: string; AValue: Pointer; AValueSize: Cardinal); overload;
+    function  GetValue(const ASection, AKey, ADefaultValue: string): string; overload;
+    function  GetValue(const ASection, AKey: string; ADefaultValue: Integer): Integer; overload;
+    function  GetValue(const ASection, AKey: string; ADefaultValue: Boolean): Boolean; overload;
+    procedure GetValue(const ASection, AKey: string; AValue: Pointer; AValueSize: Cardinal); overload;
+    function  RemoveKey(const ASection, AKey: string): Boolean;
+    function  GetSectionValues(const ASection: string): Integer;
+    function  GetSectionValue(const AIndex: Integer; const ADefaultValue: string): string; overload;
+    function  GetSectionValue(const AIndex, ADefaultValue: Integer): Integer; overload;
+    function  GetSectionValue(const AIndex: Integer; const ADefaultValue: Boolean): Boolean; overload;
+  end;
+
+{ TConfigFile }
+constructor TConfigFile.Create();
+begin
+  inherited;
+  FHandle := nil;
+  FSection := TStringList.Create();
+end;
+
+destructor TConfigFile.Destroy();
+begin
+  Close;
+  FSection.Free();
+  inherited;
+end;
+
+function  TConfigFile.Open(const AFilename: string=''): Boolean;
+var
+  LFilename: string;
+begin
+  Close;
+  LFilename := AFilename;
+  if LFilename.IsEmpty then LFilename := TPath.ChangeExtension(ParamStr(0), 'ini');
+  FHandle := TIniFile.Create(LFilename);
+  Result := Boolean(FHandle <> nil);
+  FFilename := LFilename;
+end;
+
+procedure TConfigFile.Close();
+begin
+  if not Opened then Exit;
+  FHandle.UpdateFile;
+  FreeAndNil(FHandle);
+end;
+
+function  TConfigFile.Opened(): Boolean;
+begin
+  Result := Boolean(FHandle <> nil);
+end;
+
+procedure TConfigFile.Update();
+begin
+  if not Opened then Exit;
+  FHandle.UpdateFile;
+end;
+
+function  TConfigFile.RemoveSection(const AName: string): Boolean;
+var
+  LName: string;
+begin
+  Result := False;
+  if not Opened then Exit;
+  LName := AName;
+  if LName.IsEmpty then Exit;
+  FHandle.EraseSection(LName);
+  Result := True;
+end;
+
+procedure TConfigFile.SetValue(const ASection, AKey, AValue: string);
+begin
+  if not Opened then Exit;
+  FHandle.WriteString(ASection, AKey, AValue);
+end;
+
+procedure TConfigFile.SetValue(const ASection, AKey: string; AValue: Integer);
+begin
+  if not Opened then Exit;
+  SetValue(ASection, AKey, AValue.ToString);
+end;
+
+procedure TConfigFile.SetValue(const ASection, AKey: string; AValue: Boolean);
+begin
+  if not Opened then Exit;
+  SetValue(ASection, AKey, AValue.ToInteger);
+end;
+
+procedure TConfigFile.SetValue(const ASection, AKey: string; AValue: Pointer; AValueSize: Cardinal);
+var
+  LValue: TMemoryStream;
+begin
+  if not Opened then Exit;
+  if AValue = nil then Exit;
+  LValue := TMemoryStream.Create;
+  try
+    LValue.Position := 0;
+    LValue.Write(AValue^, AValueSize);
+    LValue.Position := 0;
+    FHandle.WriteBinaryStream(ASection, AKey, LValue);
+  finally
+    FreeAndNil(LValue);
+  end;
+end;
+
+function  TConfigFile.GetValue(const ASection, AKey, ADefaultValue: string): string;
+begin
+  Result := '';
+  if not Opened then Exit;
+  Result := FHandle.ReadString(ASection, AKey, ADefaultValue);
+end;
+
+function  TConfigFile.GetValue(const ASection, AKey: string; ADefaultValue: Integer): Integer;
+var
+  LResult: string;
+begin
+  Result := ADefaultValue;
+  if not Opened then Exit;
+  LResult := GetValue(ASection, AKey, ADefaultValue.ToString);
+  Integer.TryParse(LResult, Result);
+end;
+
+function  TConfigFile.GetValue(const ASection, AKey: string; ADefaultValue: Boolean): Boolean;
+begin
+  Result := ADefaultValue;
+  if not Opened then Exit;
+  Result := GetValue(ASection, AKey, ADefaultValue.ToInteger).ToBoolean;
+end;
+
+procedure TConfigFile.GetValue(const ASection, AKey: string; AValue: Pointer; AValueSize: Cardinal);
+var
+  LValue: TMemoryStream;
+  LSize: Cardinal;
+begin
+  if not Opened then Exit;
+  if not Assigned(AValue) then Exit;
+  if AValueSize = 0 then Exit;
+  LValue := TMemoryStream.Create;
+  try
+    LValue.Position := 0;
+    FHandle.ReadBinaryStream(ASection, AKey, LValue);
+    LSize := AValueSize;
+    if AValueSize > LValue.Size then
+      LSize := LValue.Size;
+    LValue.Position := 0;
+    LValue.Write(AValue^, LSize);
+  finally
+    FreeAndNil(LValue);
+  end;
+end;
+
+function  TConfigFile.RemoveKey(const ASection, AKey: string): Boolean;
+var
+  LSection: string;
+  LKey: string;
+begin
+  Result := False;
+  if not Opened then Exit;
+  LSection := ASection;
+  LKey := AKey;
+  if LSection.IsEmpty then Exit;
+  if LKey.IsEmpty then Exit;
+  FHandle.DeleteKey(LSection, LKey);
+  Result := True;
+end;
+
+function  TConfigFile.GetSectionValues(const ASection: string): Integer;
+var
+  LSection: string;
+begin
+  Result := 0;
+  if not Opened then Exit;
+  LSection := ASection;
+  if LSection.IsEmpty then Exit;
+  FSection.Clear;
+  FHandle.ReadSectionValues(LSection, FSection);
+  Result := FSection.Count;
+end;
+
+function  TConfigFile.GetSectionValue(const AIndex: Integer; const ADefaultValue: string): string;
+begin
+  Result := '';
+  if not Opened then Exit;
+  if (AIndex < 0) or (AIndex > FSection.Count - 1) then Exit;
+  Result := FSection.ValueFromIndex[AIndex];
+  if Result = '' then Result := ADefaultValue;
+end;
+
+function  TConfigFile.GetSectionValue(const AIndex, ADefaultValue: Integer): Integer;
+begin
+  Result := ADefaultValue;
+  if not Opened then Exit;
+  Result := string(GetSectionValue(AIndex, ADefaultValue.ToString)).ToInteger;
+end;
+
+function  TConfigFile.GetSectionValue(const AIndex: Integer; const ADefaultValue: Boolean): Boolean;
+begin
+  Result := ADefaultValue;
+  if not Opened then Exit;
+  Result := string(GetSectionValue(AIndex, ADefaultValue.ToString)).ToBoolean
+end;
+{$ENDREGION}
+
 {$REGION ' UNITINIT '}
 //===========================================================================
 procedure Startup();
@@ -7605,6 +8016,8 @@ begin
   IRegister(IZipFileIO, TZipFileIO);
   IRegister(ITexture, TTexture);
   IRegister(IFont, TFont);
+  IRegister(ICamera, TCamera);
+  IRegister(IConfigFile, TConfigFile);
 
   // Init global interfaces
   Utils := TUtils.Create();
