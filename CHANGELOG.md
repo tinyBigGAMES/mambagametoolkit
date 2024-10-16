@@ -1,7 +1,7 @@
 # CHANGELOG - Mamba Game Toolkit
 
 ## Version 0.2.0
-- Added to Mamba.Core (IWindow + example, IConfigFile)
+- Added to `Mamba.Core` (`IWindow` + example, `IConfigFile`)
 - Added `Mamaba.Database` (`ILocalDb`, `IRemoteDb` + examples)
 - Added overloads for `IConsole.Print`, `IConsole.PrintLn`
 - Added latest `sqlite3` to `Mamba.Deps.o`
