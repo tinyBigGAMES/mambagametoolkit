@@ -1,7 +1,5 @@
 ![Mamba Game Toolkit](media/mamba-logo.png)  
-![GitHub Release](https://img.shields.io/github/v/release/tinyBigGAMES/mambagametoolkit?style=for-the-badge)
- ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/tinyBigGAMES/mambagametoolkit/latest/total?style=for-the-badge&label=Downloads%20%7C%20Latest) ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/tinyBigGAMES/mambagametoolkit/total?style=for-the-badge&label=Downloads%20%7C%20Overall) ![GitHub Sponsors](https://img.shields.io/github/sponsors/tinyBigGAMES?style=for-the-badge)     
-[![Chat on Discord](https://img.shields.io/discord/754884471324672040?style=for-the-badge)](https://discord.gg/tPWjMwK) [![Twitter Follow](https://img.shields.io/twitter/follow/tinyBigGAMES?style=for-the-badge)](https://twitter.com/tinyBigGAMES) ![GitHub followers](https://img.shields.io/github/followers/tinyBigGAMES?style=for-the-badge)
+[![Chat on Discord](https://img.shields.io/discord/754884471324672040?style=for-the-badge)](https://discord.gg/tPWjMwK) [![Twitter Follow](https://img.shields.io/twitter/follow/tinyBigGAMES?style=for-the-badge)](https://twitter.com/tinyBigGAMES)
 
 ## Overview
 
