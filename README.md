@@ -4,6 +4,13 @@
 [![Chat on Discord](https://img.shields.io/discord/754884471324672040?style=for-the-badge)](https://discord.gg/tPWjMwK) [![Twitter Follow](https://img.shields.io/twitter/follow/tinyBigGAMES?style=for-the-badge)](https://twitter.com/tinyBigGAMES) ![GitHub followers](https://img.shields.io/github/followers/tinyBigGAMES?style=for-the-badge)
 
 ## Overview
+
+<div align="center">
+ 
+https://github.com/user-attachments/assets/057bf7de-050f-4d1d-af3e-bf5f0dbe3710
+
+</div>
+
 Mamba Game Toolkit (MGT) is a sophisticated yet easy-to-use 2D game development library for [Delphi](https://www.embarcadero.com/products/delphi). Tailored to meet the needs of Windows developers, MGT offers a streamlined approach to building 2D games, focusing on simplicity, performance, and reducing external dependencies. With everything linked directly into the executable️, it eliminates the need for runtime DLLs, simplifying deployment and enhancing the overall stability and reliability of your projects.
 
 This toolkit has been meticulously crafted and tested on Windows 11, utilizing cutting-edge technologies 🛠️ and the latest toolchains to ensure a seamless development experience. It supports Win64 and Unicode, making it highly versatile for projects on Windows 10 and above. By leveraging the latest OS features and enhancements, it delivers a smooth and optimized gaming experience, perfectly suited for modern game development.
